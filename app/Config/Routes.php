@@ -31,6 +31,7 @@ $routes->group('pelapor', ['filter' => 'roleFilter:pelapor'], static function ($
     $routes->get('dashboard', 'PelaporController::index');
     $routes->get('buat', 'PelaporController::buat');
     $routes->post('simpan', 'PelaporController::simpan');
+    $routes->get('detail/(:num)', 'PelaporController::detail/$1');
 });
 
 // --- ROUTE CARAKA ---
@@ -39,4 +40,5 @@ $routes->group('caraka', ['filter' => 'roleFilter:caraka'], static function ($ro
     $routes->get('kerjakan/(:num)', 'CarakaController::kerjakan/$1');
     $routes->post('selesaikan', 'CarakaController::selesaikan');
     $routes->get('riwayat', 'CarakaController::riwayat');
+    $routes->get('detail/(:num)', 'CarakaController::detail/$1');
 });

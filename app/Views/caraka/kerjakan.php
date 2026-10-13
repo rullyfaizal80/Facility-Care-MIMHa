@@ -6,13 +6,30 @@
         <h5 class="m-0 fw-bold">Detail Pekerjaan</h5>
     </div>
 
+    <!-- app/Views/caraka/kerjakan.php -->
+
     <!-- Informasi Tugas -->
     <div class="card shadow-sm border-0 mb-4 bg-light">
         <div class="card-body">
             <h6 class="fw-bold text-primary"><?= esc($tiket['judul_laporan']) ?></h6>
-            <p class="mb-1 small"><i class="fas fa-map-marker-alt text-muted"></i> <?= esc($tiket['nama_fasilitas']) ?> (<?= esc($tiket['lokasi']) ?>)</p>
+            <p class="mb-1 small"><i class="fas fa-map-marker-alt text-muted"></i> <?= esc($tiket['lokasi_manual']) ?></p>
             <hr>
-            <p class="small mb-0"><strong>Keluhan:</strong><br><?= esc($tiket['deskripsi']) ?></p>
+            <p class="small mb-3"><strong>Keluhan:</strong><br><?= esc($tiket['deskripsi']) ?></p>
+
+            <!-- Menampilkan Foto Awal dari Pelapor -->
+            <small class="fw-bold d-block mb-2"><i class="fas fa-image text-muted"></i> Foto Kondisi Awal:</small>
+            <?php if($foto_sebelum): ?>
+                <?php $nama_file = str_replace('LOKAL_', '', $foto_sebelum['google_file_id']); ?>
+                <img src="<?= base_url('uploads/laporan/' . $nama_file) ?>" 
+                     class="img-fluid rounded border shadow-sm" 
+                     alt="Foto Awal" 
+                     style="max-height: 200px; cursor: zoom-in;"
+                     onclick="showImage(this.src)">
+            <?php else: ?>
+                <div class="bg-white p-3 text-center text-muted small rounded border">
+                    <i class="fas fa-image fa-2x mb-1 text-light"></i><br>Tidak ada foto dilampirkan
+                </div>
+            <?php endif; ?>
         </div>
     </div>
 

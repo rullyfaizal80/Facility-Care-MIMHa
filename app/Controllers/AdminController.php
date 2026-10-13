@@ -22,21 +22,56 @@ class AdminController extends BaseController
         return view('admin/dashboard', $data);
     }
 
-    public function kelolaTiket()
+    // app/Controllers/AdminController.php
+
+   public function kelolaTiket()
     {
         $tiketModel = new TiketModel();
         $userModel  = new UserModel();
+        $db = \Config\Database::connect();
+
+        $tiket_raw = $tiketModel->select('tiket_perawatan.*, users.nama_lengkap as nama_pelapor')
+                                ->join('users', 'users.id = tiket_perawatan.pelapor_id', 'left')
+                                ->orderBy('tgl_dibuat', 'DESC')
+                                ->findAll();
+
+        // Siapkan array semua Caraka untuk form penugasan modal
+        $list_semua_caraka = $userModel->where('role', 'caraka')->where('is_active', 1)->findAll();
+
+        $tiket_lengkap = [];
+        foreach ($tiket_raw as $t) {
+            // Ambil foto sebelum
+            $foto = $db->table('tiket_foto')->where('tiket_id', $t['id'])->where('tipe_foto', 'sebelum')->orderBy('id', 'DESC')->get()->getRowArray();
+            $t['foto_sebelum'] = $foto ? $foto['google_file_id'] : null;
+            
+            // --- LOGIKA MENGAMBIL NAMA MULTI-CARAKA ---
+            $t['nama_caraka'] = '-'; // Default jika kosong
+            
+            if (!empty($t['caraka_id'])) {
+                // Ubah string "1,3" jadi array [1, 3]
+                $caraka_ids = explode(',', $t['caraka_id']); 
+                
+                // Cari nama lengkap user berdasarkan ID-ID tersebut
+                $caraka_users = $userModel->whereIn('id', $caraka_ids)->findAll();
+                
+                // Kumpulkan nama-namanya
+                $nama_nama = [];
+                foreach ($caraka_users as $cu) {
+                    $nama_nama[] = $cu['nama_lengkap'];
+                }
+                
+                // Gabungkan kembali jadi string dengan koma: "Pak Joko, Pak Santoso"
+                $t['nama_caraka'] = implode(', ', $nama_nama);
+            }
+            // ------------------------------------------
+
+            $tiket_lengkap[] = $t;
+        }
 
         $data = [
             'title'  => 'Kelola Tiket Masuk',
-            // Ambil semua tiket, join dengan fasilitas dan users (untuk tahu siapa pelapornya)
-            'tiket'  => $tiketModel->select('tiket_perawatan.*, fasilitas.nama_fasilitas, fasilitas.lokasi, users.nama_lengkap as nama_pelapor')
-                                   ->join('fasilitas', 'fasilitas.id = tiket_perawatan.fasilitas_id')
-                                   ->join('users', 'users.id = tiket_perawatan.pelapor_id', 'left')
-                                   ->orderBy('tgl_dibuat', 'DESC')
-                                   ->findAll(),
-            // Ambil daftar user yang memiliki role caraka untuk ditampilkan di dropdown penugasan
-            'caraka' => $userModel->where('role', 'caraka')->where('is_active', 1)->findAll()
+            'tiket'  => $tiket_lengkap, 
+            'caraka' => $list_semua_caraka
         ];
         
         return view('admin/kelola_tiket', $data);
@@ -47,14 +82,20 @@ class AdminController extends BaseController
         $tiketModel = new TiketModel();
         
         $tiket_id  = $this->request->getPost('tiket_id');
-        $caraka_id = $this->request->getPost('caraka_id');
         $prioritas = $this->request->getPost('prioritas');
+        $tgl_tugas = $this->request->getPost('tgl_dijadwalkan'); // Tanggal penugasan
+        
+        // Menangkap Multi-Caraka (Karena bentuknya array dari form multiple select)
+        $caraka_array = $this->request->getPost('caraka_id'); 
+        
+        // Ubah array [1, 3] menjadi string koma "1,3" agar bisa masuk ke VARCHAR
+        $caraka_string = implode(',', (array)$caraka_array); 
 
-        // Update status tiket menjadi dikerjakan dan masukkan ID Caraka
         $tiketModel->update($tiket_id, [
-            'caraka_id' => $caraka_id,
-            'prioritas' => $prioritas,
-            'status'    => 'dikerjakan'
+            'caraka_id'       => $caraka_string, // Bisa 1 orang atau banyak
+            'prioritas'       => $prioritas,
+            'tgl_dijadwalkan' => $tgl_tugas,     // Menyimpan tanggal penugasan
+            'status'          => 'dikerjakan'
         ]);
 
         session()->setFlashdata('success', 'Tiket berhasil ditugaskan ke Caraka.');

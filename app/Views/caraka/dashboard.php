@@ -31,7 +31,7 @@
                             <span class="badge bg-danger rounded-pill" style="font-size: 0.65rem;">URGENT</span>
                         <?php endif; ?>
                     </div>
-                    <p class="card-text mb-1 small text-muted"><i class="fas fa-map-marker-alt"></i> <?= esc($t['nama_fasilitas']) ?> (<?= esc($t['lokasi']) ?>)</p>
+                    <p class="card-text mb-1 small text-muted"><i class="fas fa-map-marker-alt"></i> <?= esc($t['lokasi_manual']) ?></p>
                     <p class="card-text small mb-3"><?= esc($t['deskripsi']) ?></p>
                     <?php if($t['status'] == 'dikerjakan' && !empty($t['catatan_admin'])): ?>
                         <div class="alert alert-danger p-2 small mb-3 border-0">

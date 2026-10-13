@@ -12,12 +12,7 @@
                 
                 <div class="mb-3">
                     <label class="form-label fw-bold">Lokasi / Fasilitas <span class="text-danger">*</span></label>
-                    <select class="form-select" name="fasilitas_id" required>
-                        <option value="">-- Pilih Fasilitas --</option>
-                        <?php foreach($fasilitas as $f): ?>
-                            <option value="<?= $f['id'] ?>"><?= esc($f['nama_fasilitas']) ?> - <?= esc($f['lokasi']) ?></option>
-                        <?php endforeach; ?>
-                    </select>
+                    <input type="text" class="form-control" name="lokasi_manual" placeholder="Contoh: AC Ruang Guru Lantai 1" required>
                 </div>
 
                 <div class="mb-3">

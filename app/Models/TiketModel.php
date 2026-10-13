@@ -7,7 +7,7 @@ class TiketModel extends Model
     protected $table         = 'tiket_perawatan';
     protected $primaryKey    = 'id';
     protected $allowedFields = [
-        'jenis_tiket', 'judul_laporan', 'deskripsi', 'fasilitas_id', 
+    'jenis_tiket', 'judul_laporan', 'lokasi_manual', 'deskripsi', 'fasilitas_id',
         'pelapor_id', 'caraka_id', 'status', 'prioritas', 
         'tgl_dibuat', 'tgl_dijadwalkan', 'tgl_selesai',
         'catatan_admin' // <--- Tambahkan ini
