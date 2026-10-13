@@ -1,0 +1,52 @@
+<?= $this->extend('layouts/mobile_layout') ?>
+
+<?= $this->section('content') ?>
+    <div class="d-flex align-items-center mb-4">
+        <a href="/pelapor/dashboard" class="text-secondary me-3"><i class="fas fa-arrow-left fs-5"></i></a>
+        <h5 class="m-0 fw-bold">Buat Laporan Baru</h5>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <form action="/pelapor/simpan" method="post" enctype="multipart/form-data">
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Lokasi / Fasilitas <span class="text-danger">*</span></label>
+                    <select class="form-select" name="fasilitas_id" required>
+                        <option value="">-- Pilih Fasilitas --</option>
+                        <?php foreach($fasilitas as $f): ?>
+                            <option value="<?= $f['id'] ?>"><?= esc($f['nama_fasilitas']) ?> - <?= esc($f['lokasi']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Ringkasan Masalah <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="judul_laporan" placeholder="Contoh: AC Bocor, Lampu Mati" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Deskripsi Detail</label>
+                    <textarea class="form-control" name="deskripsi" rows="3" placeholder="Jelaskan kondisi kerusakan lebih lanjut..."></textarea>
+                </div>
+
+                <!-- Bagian Input Foto (Mobile-First) -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Foto Kondisi (Opsional)</label>
+                    <!-- Atribut capture="camera" akan memprioritaskan buka kamera HP -->
+                    <input class="form-control" type="file" id="foto_kondisi" name="foto_kondisi" accept="image/*" capture="environment">
+                    <small class="text-muted mt-1 d-block">Ambil foto langsung atau pilih dari galeri.</small>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold"><i class="fas fa-paper-plane me-2"></i> Kirim Laporan</button>
+            </form>
+        </div>
+    </div>
+<?= $this->endSection() ?>
+
+<!-- Bottom nav tidak perlu ditampilkan di form untuk mengurangi distraksi layar -->
+<?= $this->section('bottom_nav') ?>
+    <a href="/pelapor/dashboard"><i class="fas fa-home"></i>Beranda</a>
+    <a href="/pelapor/buat" class="active"><i class="fas fa-plus-circle text-primary fs-3"></i>Lapor</a>
+    <a href="/logout"><i class="fas fa-sign-out-alt"></i>Keluar</a>
+<?= $this->endSection() ?>
