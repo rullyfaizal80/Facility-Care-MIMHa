@@ -9,14 +9,14 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-    <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-4 border-bottom">
+    <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
         <h1 class="h2">Laporan Saya</h1>
         <button type="button" class="btn btn-primary rounded-pill shadow-sm px-3" data-bs-toggle="modal" data-bs-target="#modalTambah">
             <i class="fas fa-plus me-1"></i> Buat Laporan
         </button>
     </div>
 
-   <?php if(session()->getFlashdata('success')): ?>
+    <?php if(session()->getFlashdata('success')): ?>
         <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
             <i class="fas fa-check-circle me-1"></i> <?= session()->getFlashdata('success') ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -29,6 +29,35 @@
         </div>
     <?php endif; ?>
 
+    <!-- FILTER BULAN DAN TAHUN -->
+    <form method="get" action="/admin/laporan_saya" class="bg-light p-3 rounded border mb-4 shadow-sm d-flex gap-2 align-items-center flex-wrap">
+        <span class="fw-bold small text-muted"><i class="fas fa-filter"></i> Filter:</span>
+        
+        <select name="bulan" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+            <?php 
+            $arrBulan = [
+                '01'=>'Januari', '02'=>'Februari', '03'=>'Maret', '04'=>'April', 
+                '05'=>'Mei', '06'=>'Juni', '07'=>'Juli', '08'=>'Agustus', 
+                '09'=>'September', '10'=>'Oktober', '11'=>'November', '12'=>'Desember'
+            ];
+            foreach($arrBulan as $k => $v): 
+                $sel = ($k == $bulan) ? 'selected' : '';
+            ?>
+                <option value="<?= $k ?>" <?= $sel ?>><?= $v ?></option>
+            <?php endforeach; ?>
+        </select>
+
+        <select name="tahun" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+            <?php 
+            $thn_sekarang = date('Y');
+            for($t = $thn_sekarang - 4; $t <= $thn_sekarang; $t++): 
+                $sel = ($t == $tahun) ? 'selected' : '';
+            ?>
+                <option value="<?= $t ?>" <?= $sel ?>><?= $t ?></option>
+            <?php endfor; ?>
+        </select>
+    </form>
+
     <!-- Tampilan Card List -->
     <div class="row">
         <?php if(empty($tiket)): ?>
@@ -37,7 +66,7 @@
                     <i class="fas fa-box-open fa-3x text-secondary"></i>
                 </div>
                 <h6 class="fw-bold">Belum ada laporan</h6>
-                <p class="small">Anda belum membuat laporan kerusakan apapun.</p>
+                <p class="small">Tidak ada laporan kerusakan yang Anda buat pada periode bulan/tahun ini.</p>
             </div>
         <?php else: ?>
             <?php foreach($tiket as $t): ?>
@@ -70,7 +99,7 @@
         <?php endif; ?>
     </div>
 
-    <!-- MODAL FORM BUAT LAPORAN (DISAMAKAN DENGAN FORMAT PELAPOR) -->
+    <!-- MODAL FORM BUAT LAPORAN -->
     <div class="modal fade" id="modalTambah" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content border-0 shadow-lg">

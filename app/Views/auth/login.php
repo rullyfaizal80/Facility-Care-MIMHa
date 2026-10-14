@@ -65,8 +65,7 @@
             <!-- Header Login -->
             <div class="login-header">
                 <i class="fas fa-tools fa-3x mb-3 shadow-sm rounded-circle p-3 bg-white text-primary"></i>
-                <h4 class="mb-0 fw-bold">Facility Care</h4>
-                <p class="mb-0 small text-white-50 mt-1">Yayasan MIMHa</p>
+                <h4 class="mb-0 fw-bold">Facility Care MIMHa</h4>
             </div>
             
             <div class="card-body p-4 bg-white">

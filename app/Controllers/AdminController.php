@@ -436,10 +436,20 @@ class AdminController extends BaseController
         $tiketModel = new TiketModel();
         $admin_id = session()->get('id');
 
-        // Mengambil tiket yang hanya dibuat oleh admin ini
+        // Ambil filter dari URL, default bulan dan tahun saat ini
+        $bulan = $this->request->getGet('bulan') ?? date('m');
+        $tahun = $this->request->getGet('tahun') ?? date('Y');
+
+        // Mengambil tiket yang dibuat admin berdasarkan filter bulan dan tahun
         $data = [
             'title' => 'Laporan Saya',
-            'tiket' => $tiketModel->where('pelapor_id', $admin_id)->orderBy('tgl_dibuat', 'DESC')->findAll()
+            'bulan' => $bulan,
+            'tahun' => $tahun,
+            'tiket' => $tiketModel->where('pelapor_id', $admin_id)
+                                  ->where('MONTH(tgl_dibuat)', $bulan)
+                                  ->where('YEAR(tgl_dibuat)', $tahun)
+                                  ->orderBy('tgl_dibuat', 'DESC')
+                                  ->findAll()
         ];
 
         return view('admin/laporan_saya', $data);
