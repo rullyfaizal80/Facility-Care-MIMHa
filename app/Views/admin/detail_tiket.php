@@ -1,14 +1,24 @@
 <?= $this->extend('layouts/dashboard_layout') ?>
 
 <?= $this->section('sidebar_menu') ?>
-    <li class="nav-item"><a class="nav-link" href="/admin/dashboard"><i class="fas fa-tachometer-alt me-2"></i> Dashboard</a></li>
-    <li class="nav-item"><a class="nav-link active" href="/admin/tiket"><i class="fas fa-ticket-alt me-2"></i> Kelola Tiket</a></li>
+    <li class="nav-item">
+        <a class="nav-link active" href="/admin/dashboard"><i class="fas fa-tachometer-alt me-2"></i> Dashboard</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/admin/tiket"><i class="fas fa-ticket-alt me-2"></i> Kelola Tiket</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/admin/laporan"><i class="fas fa-print me-2"></i> Rekap & Cetak</a>
+    </li>
 <?= $this->endSection() ?>
-
 <?= $this->section('content') ?>
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <h1 class="h2">Detail Laporan</h1>
-        <a href="/admin/tiket" class="btn btn-outline-secondary"><i class="fas fa-arrow-left"></i> Kembali</a>
+        <?php 
+            // Cek apakah ada penanda 'source' dari URL. Jika ya, arahkan ke laporan, jika tidak arahkan ke kelola tiket
+            $url_kembali = (isset($_GET['source']) && $_GET['source'] == 'laporan') ? '/admin/laporan' : '/admin/tiket'; 
+        ?>
+        <a href="<?= $url_kembali ?>" class="btn btn-outline-secondary"><i class="fas fa-arrow-left"></i> Kembali</a>
     </div>
 
     <div class="row">

@@ -67,51 +67,62 @@
     <!-- TABEL DATA LAPORAN -->
     <div class="card shadow-sm border-0">
         <div class="card-body table-responsive">
-            <table class="table table-hover align-middle">
-                <thead class="table-light">
+            <!-- TABEL DATA LAPORAN -->
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Tanggal</th>
+                    <th>Pelapor</th>
+                    <th>Lokasi</th>
+                    <th>Masalah</th>
+                    <th>Status</th>
+                    <th>Teknisi</th>
+                    <!-- TAMBAHAN: Kolom Aksi -->
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if(empty($tiket)): ?>
                     <tr>
-                        <th>Tanggal</th>
-                        <th>Pelapor</th>
-                        <th>Lokasi</th>
-                        <th>Masalah</th>
-                        <th>Status</th>
-                        <th>Teknisi</th>
+                        <td colspan="7" class="text-center py-4 text-muted">Tidak ada data laporan pada periode ini.</td>
                     </tr>
-                </thead>
-                <tbody>
-                    <?php if(empty($tiket)): ?>
+                <?php else: ?>
+                    <?php foreach($tiket as $t): ?>
                         <tr>
-                            <td colspan="6" class="text-center py-4 text-muted">Tidak ada data laporan pada periode ini.</td>
+                            <!-- ... (Kolom Tanggal sampai Teknisi biarkan seperti sebelumnya) ... -->
+                            <td>
+                                <div class="small" style="white-space: nowrap;">
+                                    <?= date('d M Y, H:i', strtotime($t['tgl_dibuat'])) ?>
+                                </div>
+                            </td>
+                            <td><?= esc($t['nama_pelapor'] ?? 'Sistem') ?></td>
+                            <td><strong><?= esc($t['lokasi_manual']) ?></strong></td>
+                            <td><?= esc($t['judul_laporan']) ?></td>
+                            <td>
+                                <?php 
+                                    $badge = 'bg-secondary';
+                                    if($t['status'] == 'menunggu_respon') $badge = 'bg-warning text-dark';
+                                    if($t['status'] == 'dikerjakan') $badge = 'bg-info text-dark';
+                                    if($t['status'] == 'pending') $badge = 'bg-danger'; 
+                                    if($t['status'] == 'menunggu_approval') $badge = 'bg-primary';
+                                    if($t['status'] == 'selesai') $badge = 'bg-success';
+                                    if($t['status'] == 'ditolak') $badge = 'bg-dark'; 
+                                ?>
+                                <span class="badge <?= $badge ?> rounded-pill"><?= str_replace('_', ' ', strtoupper($t['status'])) ?></span>
+                            </td>
+                            <td><small class="text-muted fw-bold"><?= esc($t['nama_caraka']) ?></small></td>
+                            
+                            <!-- TAMBAHAN: Tombol Detail -->
+                            <td>
+                                <a href="/pimpinan/tiket/detail/<?= $t['id'] ?>" class="btn btn-sm btn-outline-primary" title="Lihat Detail">
+                                    <i class="fas fa-eye"></i> Detail
+                                </a>
+                            </td>
                         </tr>
-                    <?php else: ?>
-                        <?php foreach($tiket as $t): ?>
-                            <tr>
-                                <td>
-                                    <div class="small" style="white-space: nowrap;">
-                                        <?= date('d M Y, H:i', strtotime($t['tgl_dibuat'])) ?>
-                                    </div>
-                                </td>
-                                <td><?= esc($t['nama_pelapor'] ?? 'Sistem') ?></td>
-                                <td><strong><?= esc($t['lokasi_manual']) ?></strong></td>
-                                <td><?= esc($t['judul_laporan']) ?></td>
-                                <td>
-                                    <?php 
-                                        $badge = 'bg-secondary';
-                                        if($t['status'] == 'menunggu_respon') $badge = 'bg-warning text-dark';
-                                        if($t['status'] == 'dikerjakan') $badge = 'bg-info text-dark';
-                                        if($t['status'] == 'pending') $badge = 'bg-danger'; 
-                                        if($t['status'] == 'menunggu_approval') $badge = 'bg-primary';
-                                        if($t['status'] == 'selesai') $badge = 'bg-success';
-                                        if($t['status'] == 'ditolak') $badge = 'bg-dark'; 
-                                    ?>
-                                    <span class="badge <?= $badge ?> rounded-pill"><?= str_replace('_', ' ', strtoupper($t['status'])) ?></span>
-                                </td>
-                                <td><small class="text-muted fw-bold"><?= esc($t['nama_caraka']) ?></small></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </tbody>
-            </table>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
         </div>
     </div>
 <?= $this->endSection() ?>

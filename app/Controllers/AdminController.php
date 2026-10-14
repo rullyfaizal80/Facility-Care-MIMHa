@@ -239,4 +239,102 @@ class AdminController extends BaseController
         session()->setFlashdata('success', 'Perubahan tiket berhasil disimpan.');
         return redirect()->to('/admin/tiket');
     }
+
+    public function laporan()
+    {
+        $tiketModel = new TiketModel();
+        $userModel  = new UserModel();
+        
+        $bulan = $this->request->getGet('bulan') ?? date('m');
+        $tahun = $this->request->getGet('tahun') ?? date('Y');
+        $status = $this->request->getGet('status') ?? '';
+
+        $caraka = $userModel->where('role', 'caraka')->where('is_active', 1)->findAll();
+
+        $builder = $tiketModel->select('tiket_perawatan.*, users.nama_lengkap as nama_pelapor')
+                              ->join('users', 'users.id = tiket_perawatan.pelapor_id', 'left')
+                              ->where('MONTH(tiket_perawatan.tgl_dibuat)', $bulan)
+                              ->where('YEAR(tiket_perawatan.tgl_dibuat)', $tahun);
+
+        if (!empty($status)) {
+            $builder->where('tiket_perawatan.status', $status);
+        }
+
+        $tiket_raw = $builder->orderBy('tiket_perawatan.tgl_dibuat', 'DESC')->findAll();
+
+        $tiket_lengkap = [];
+        foreach ($tiket_raw as $t) {
+            $t['nama_caraka'] = '-';
+            if (!empty($t['caraka_id'])) {
+                $caraka_ids = explode(',', $t['caraka_id']);
+                $nama_nama = [];
+                foreach ($caraka as $c) {
+                    if (in_array($c['id'], $caraka_ids)) {
+                        $nama_nama[] = $c['nama_lengkap'];
+                    }
+                }
+                $t['nama_caraka'] = implode(', ', $nama_nama);
+            }
+            $tiket_lengkap[] = $t;
+        }
+
+        $data = [
+            'title'  => 'Rekap & Cetak Laporan',
+            'tiket'  => $tiket_lengkap,
+            'bulan'  => $bulan,
+            'tahun'  => $tahun,
+            'status' => $status
+        ];
+
+        return view('admin/laporan', $data); // Diarahkan ke view admin
+    }
+
+    public function cetak()
+    {
+        $tiketModel = new TiketModel();
+        $userModel  = new UserModel();
+        
+        $bulan = $this->request->getGet('bulan') ?? date('m');
+        $tahun = $this->request->getGet('tahun') ?? date('Y');
+        $status = $this->request->getGet('status') ?? '';
+
+        $caraka = $userModel->where('role', 'caraka')->where('is_active', 1)->findAll();
+
+        $builder = $tiketModel->select('tiket_perawatan.*, users.nama_lengkap as nama_pelapor')
+                              ->join('users', 'users.id = tiket_perawatan.pelapor_id', 'left')
+                              ->where('MONTH(tiket_perawatan.tgl_dibuat)', $bulan)
+                              ->where('YEAR(tiket_perawatan.tgl_dibuat)', $tahun);
+
+        if (!empty($status)) {
+            $builder->where('tiket_perawatan.status', $status);
+        }
+
+        $tiket_raw = $builder->orderBy('tiket_perawatan.tgl_dibuat', 'ASC')->findAll();
+
+        $tiket_lengkap = [];
+        foreach ($tiket_raw as $t) {
+            $t['nama_caraka'] = '-';
+            if (!empty($t['caraka_id'])) {
+                $caraka_ids = explode(',', $t['caraka_id']);
+                $nama_nama = [];
+                foreach ($caraka as $c) {
+                    if (in_array($c['id'], $caraka_ids)) {
+                        $nama_nama[] = $c['nama_lengkap'];
+                    }
+                }
+                $t['nama_caraka'] = implode(', ', $nama_nama);
+            }
+            $tiket_lengkap[] = $t;
+        }
+
+        $data = [
+            'title'  => 'Cetak Laporan',
+            'tiket'  => $tiket_lengkap,
+            'bulan'  => $bulan,
+            'tahun'  => $tahun,
+            'status' => $status
+        ];
+
+        return view('admin/cetak_laporan', $data); // Diarahkan ke view admin
+    }
 }

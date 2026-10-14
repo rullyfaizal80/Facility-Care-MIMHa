@@ -1,8 +1,15 @@
 <?= $this->extend('layouts/dashboard_layout') ?>
 
 <?= $this->section('sidebar_menu') ?>
-    <li class="nav-item"><a class="nav-link" href="/admin/dashboard"><i class="fas fa-tachometer-alt me-2"></i> Dashboard</a></li>
-    <li class="nav-item"><a class="nav-link active" href="/admin/tiket"><i class="fas fa-ticket-alt me-2"></i> Kelola Tiket</a></li>
+    <li class="nav-item">
+        <a class="nav-link" href="/admin/dashboard"><i class="fas fa-tachometer-alt me-2"></i> Dashboard</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link active" href="/admin/tiket"><i class="fas fa-ticket-alt me-2"></i> Kelola Tiket</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/admin/laporan"><i class="fas fa-print me-2"></i> Rekap & Cetak</a>
+    </li>
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>

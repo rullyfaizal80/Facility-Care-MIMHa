@@ -18,6 +18,8 @@ $routes->group('admin', ['filter' => 'roleFilter:admin'], static function ($rout
     $routes->get('tiket/detail/(:num)', 'AdminController::detailTiket/$1');
     $routes->post('tiket/approval', 'AdminController::prosesApproval');
     $routes->post('tiket/update', 'AdminController::updateTiket');
+    $routes->get('laporan', 'AdminController::laporan');
+    $routes->get('laporan/cetak', 'AdminController::cetak');
 });
 
 // --- ROUTE PIMPINAN ---

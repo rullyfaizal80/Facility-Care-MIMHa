@@ -153,4 +153,48 @@ class PimpinanController extends BaseController
 
         return view('pimpinan/cetak_laporan', $data);
     }
+
+    public function detail($tiket_id)
+    {
+        $tiketModel = new \App\Models\TiketModel();
+        $userModel  = new \App\Models\UserModel();
+        $db = \Config\Database::connect();
+
+        // 1. Ambil data utama tiket
+        $tiket = $tiketModel->select('tiket_perawatan.*, users.nama_lengkap as nama_pelapor')
+                            ->join('users', 'users.id = tiket_perawatan.pelapor_id', 'left')
+                            ->where('tiket_perawatan.id', $tiket_id)
+                            ->first();
+
+        // Jika tidak ditemukan, kembalikan ke daftar laporan
+        if (empty($tiket)) {
+            return redirect()->to('/pimpinan/laporan');
+        }
+
+        // 2. Ambil Nama-nama Caraka (Logika Multi-Caraka)
+        $tiket['nama_caraka'] = '-';
+        if (!empty($tiket['caraka_id'])) {
+            $caraka_ids = explode(',', $tiket['caraka_id']); 
+            $caraka_users = $userModel->whereIn('id', $caraka_ids)->findAll();
+            $nama_nama = [];
+            foreach ($caraka_users as $cu) {
+                $nama_nama[] = $cu['nama_lengkap'];
+            }
+            $tiket['nama_caraka'] = implode(', ', $nama_nama);
+        }
+
+        // 3. Ambil data foto (Sebelum & Sesudah)
+        $foto_sebelum = $db->table('tiket_foto')->where('tiket_id', $tiket_id)->where('tipe_foto', 'sebelum')->orderBy('id', 'DESC')->get()->getRowArray();
+        $foto_sesudah = $db->table('tiket_foto')->where('tiket_id', $tiket_id)->where('tipe_foto', 'sesudah')->orderBy('id', 'DESC')->get()->getRowArray();
+
+        $data = [
+            'title'        => 'Detail Laporan Perawatan',
+            'tiket'        => $tiket,
+            'foto_sebelum' => $foto_sebelum,
+            'foto_sesudah' => $foto_sesudah
+        ];
+
+        return view('pimpinan/detail_tiket', $data);
+    }
+    
 }
