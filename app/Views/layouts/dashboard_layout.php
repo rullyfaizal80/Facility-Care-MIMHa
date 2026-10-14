@@ -15,7 +15,7 @@
 
     <!-- Top Navbar -->
     <header class="navbar navbar-dark sticky-top bg-primary flex-md-nowrap p-0 shadow">
-        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3 fs-6" href="#">Facility Care MIMHa</a>
+        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3 ps-5 ms-4 ms-md-0 ps-md-3 fs-6" href="#">Facility Care MIMHa</a>
         <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -31,12 +31,17 @@
             <!-- Sidebar -->
             <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-white sidebar collapse">
                 <div class="position-sticky pt-3 sidebar-sticky">
-                    <div class="text-center mb-4">
-                        <i class="fas fa-user-circle fa-3x text-secondary"></i>
-                        <p class="mt-2 mb-0 fw-bold"><?= session()->get('nama_lengkap') ?></p>
-                        <small class="text-muted text-capitalize"><?= session()->get('role') ?></small>
-                    </div>
-                    
+                    <!-- TAMBAHAN: INFO USER LOGIN -->
+                <div class="text-center mb-3 pb-3 border-bottom px-3">
+                    <i class="fas fa-user-circle fa-3x text-secondary mb-2"></i>
+                    <h6 class="fw-bold mb-0 text-truncate text-dark" title="<?= esc(session()->get('nama_lengkap')) ?>">
+                        <?= esc(session()->get('nama_lengkap') ?? 'Pengguna') ?>
+                    </h6>
+                    <small class="text-muted text-capitalize badge bg-light border text-dark mt-1">
+                        <i class="fas fa-id-badge me-1"></i> <?= esc(session()->get('role') ?? 'Role') ?>
+                    </small>
+                </div>
+                <!-- AKHIR INFO USER -->
                     <ul class="nav flex-column">
                         <!-- Nanti menu ini kita buat dinamis/berbeda antara admin dan pimpinan -->
                         <?= $this->renderSection('sidebar_menu') ?>

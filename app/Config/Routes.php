@@ -13,7 +13,7 @@ $routes->get('unauthorized', 'Auth::unauthorized');
 // --- ROUTE ADMIN ---
 $routes->group('admin', ['filter' => 'roleFilter:admin'], static function ($routes) {
     $routes->get('dashboard', 'AdminController::index');
-    $routes->get('tiket', 'AdminController::kelolaTiket');
+    $routes->get('tiket', 'AdminController::tiket');
     $routes->post('tiket/tugaskan', 'AdminController::tugaskan');
     $routes->get('tiket/detail/(:num)', 'AdminController::detailTiket/$1');
     $routes->post('tiket/approval', 'AdminController::prosesApproval');

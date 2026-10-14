@@ -11,72 +11,100 @@ class AdminController extends BaseController
     {
         $tiketModel = new TiketModel();
         
-        // Menghitung statistik untuk Dashboard
+        $bulan_ini = date('m');
+        $tahun_ini = date('Y');
+
+        // 1. STATISTIK CARD (HANYA BULAN INI)
         $data = [
             'title'          => 'Dashboard Admin',
-            'tiket_masuk'    => $tiketModel->where('status', 'menunggu_respon')->countAllResults(),
-            'tiket_proses'   => $tiketModel->whereIn('status', ['dikerjakan', 'pending'])->countAllResults(),
-            'tiket_approval' => $tiketModel->where('status', 'menunggu_approval')->countAllResults(),
-            'tiket_selesai'  => $tiketModel->where('status', 'selesai')->countAllResults(),
-            // Tambahan: Menghitung tiket yang ditolak/dibatalkan
-            'tiket_ditolak'  => $tiketModel->where('status', 'ditolak')->countAllResults(),
+            'bulan_ini'      => $bulan_ini,
+            'tahun_ini'      => $tahun_ini,
+            'tiket_masuk'    => $tiketModel->where('status', 'menunggu_respon')->where('MONTH(tgl_dibuat)', $bulan_ini)->where('YEAR(tgl_dibuat)', $tahun_ini)->countAllResults(),
+            'tiket_proses'   => $tiketModel->whereIn('status', ['dikerjakan', 'pending'])->where('MONTH(tgl_dibuat)', $bulan_ini)->where('YEAR(tgl_dibuat)', $tahun_ini)->countAllResults(),
+            'tiket_approval' => $tiketModel->where('status', 'menunggu_approval')->where('MONTH(tgl_dibuat)', $bulan_ini)->where('YEAR(tgl_dibuat)', $tahun_ini)->countAllResults(),
+            'tiket_selesai'  => $tiketModel->where('status', 'selesai')->where('MONTH(tgl_dibuat)', $bulan_ini)->where('YEAR(tgl_dibuat)', $tahun_ini)->countAllResults(),
+            'tiket_ditolak'  => $tiketModel->where('status', 'ditolak')->where('MONTH(tgl_dibuat)', $bulan_ini)->where('YEAR(tgl_dibuat)', $tahun_ini)->countAllResults(),
         ];
-        
+
+        // 2. REKAPITULASI TABEL (1 TAHUN INI)
+        $rekap = [];
+        $total_tahun = ['masuk' => 0, 'proses' => 0, 'approval' => 0, 'selesai' => 0, 'ditolak' => 0, 'total' => 0];
+
+        for ($i = 1; $i <= 12; $i++) {
+            $bln = str_pad($i, 2, '0', STR_PAD_LEFT);
+            $masuk    = $tiketModel->where('status', 'menunggu_respon')->where('MONTH(tgl_dibuat)', $bln)->where('YEAR(tgl_dibuat)', $tahun_ini)->countAllResults();
+            $proses   = $tiketModel->whereIn('status', ['dikerjakan', 'pending'])->where('MONTH(tgl_dibuat)', $bln)->where('YEAR(tgl_dibuat)', $tahun_ini)->countAllResults();
+            $approval = $tiketModel->where('status', 'menunggu_approval')->where('MONTH(tgl_dibuat)', $bln)->where('YEAR(tgl_dibuat)', $tahun_ini)->countAllResults();
+            $selesai  = $tiketModel->where('status', 'selesai')->where('MONTH(tgl_dibuat)', $bln)->where('YEAR(tgl_dibuat)', $tahun_ini)->countAllResults();
+            $ditolak  = $tiketModel->where('status', 'ditolak')->where('MONTH(tgl_dibuat)', $bln)->where('YEAR(tgl_dibuat)', $tahun_ini)->countAllResults();
+            
+            $total_bulan = $masuk + $proses + $approval + $selesai + $ditolak;
+
+            $rekap[] = [
+                'bulan' => $bln, 'masuk' => $masuk, 'proses' => $proses, 'approval' => $approval, 'selesai' => $selesai, 'ditolak' => $ditolak, 'total' => $total_bulan
+            ];
+
+            $total_tahun['masuk'] += $masuk; $total_tahun['proses'] += $proses; $total_tahun['approval'] += $approval;
+            $total_tahun['selesai'] += $selesai; $total_tahun['ditolak'] += $ditolak; $total_tahun['total'] += $total_bulan;
+        }
+
+        $data['rekap'] = $rekap;
+        $data['total_tahun'] = $total_tahun;
+
         return view('admin/dashboard', $data);
     }
 
-    // app/Controllers/AdminController.php
-
-   public function kelolaTiket()
+    public function tiket()
     {
         $tiketModel = new TiketModel();
         $userModel  = new UserModel();
         $db = \Config\Database::connect();
+        
+        // 1. Ambil filter dari URL, jika kosong gunakan bulan dan tahun saat ini
+        $bulan = $this->request->getGet('bulan') ?? date('m');
+        $tahun = $this->request->getGet('tahun') ?? date('Y');
 
+        $caraka = $userModel->where('role', 'caraka')->where('is_active', 1)->findAll();
+
+        // 2. Query berdasarkan filter bulan dan tahun
         $tiket_raw = $tiketModel->select('tiket_perawatan.*, users.nama_lengkap as nama_pelapor')
-                                ->join('users', 'users.id = tiket_perawatan.pelapor_id', 'left')
-                                ->orderBy('tgl_dibuat', 'DESC')
-                                ->findAll();
+                            ->join('users', 'users.id = tiket_perawatan.pelapor_id', 'left')
+                            ->where('MONTH(tiket_perawatan.tgl_dibuat)', $bulan)
+                            ->where('YEAR(tiket_perawatan.tgl_dibuat)', $tahun)
+                            ->orderBy('tiket_perawatan.tgl_dibuat', 'DESC')
+                            ->findAll();
 
-        // Siapkan array semua Caraka untuk form penugasan modal
-        $list_semua_caraka = $userModel->where('role', 'caraka')->where('is_active', 1)->findAll();
-
+        // 3. Proses nama multi-caraka & Ambil Foto
         $tiket_lengkap = [];
         foreach ($tiket_raw as $t) {
             // Ambil foto sebelum
             $foto = $db->table('tiket_foto')->where('tiket_id', $t['id'])->where('tipe_foto', 'sebelum')->orderBy('id', 'DESC')->get()->getRowArray();
             $t['foto_sebelum'] = $foto ? $foto['google_file_id'] : null;
-            
-            // --- LOGIKA MENGAMBIL NAMA MULTI-CARAKA ---
-            $t['nama_caraka'] = '-'; // Default jika kosong
-            
+
+            // Proses Nama Caraka
+            $t['nama_caraka'] = '-';
             if (!empty($t['caraka_id'])) {
-                // Ubah string "1,3" jadi array [1, 3]
-                $caraka_ids = explode(',', $t['caraka_id']); 
-                
-                // Cari nama lengkap user berdasarkan ID-ID tersebut
-                $caraka_users = $userModel->whereIn('id', $caraka_ids)->findAll();
-                
-                // Kumpulkan nama-namanya
+                $caraka_ids = explode(',', $t['caraka_id']);
                 $nama_nama = [];
-                foreach ($caraka_users as $cu) {
-                    $nama_nama[] = $cu['nama_lengkap'];
+                foreach ($caraka as $c) {
+                    if (in_array($c['id'], $caraka_ids)) {
+                        $nama_nama[] = $c['nama_lengkap'];
+                    }
                 }
-                
-                // Gabungkan kembali jadi string dengan koma: "Pak Joko, Pak Santoso"
                 $t['nama_caraka'] = implode(', ', $nama_nama);
             }
-            // ------------------------------------------
-
             $tiket_lengkap[] = $t;
         }
 
+        // 4. Masukkan ke data
         $data = [
-            'title'  => 'Kelola Tiket Masuk',
-            'tiket'  => $tiket_lengkap, 
-            'caraka' => $list_semua_caraka
+            'title'  => 'Kelola Tiket',
+            'tiket'  => $tiket_lengkap,
+            'caraka' => $caraka,
+            'bulan'  => $bulan,
+            'tahun'  => $tahun
         ];
-        
+
         return view('admin/kelola_tiket', $data);
     }
 

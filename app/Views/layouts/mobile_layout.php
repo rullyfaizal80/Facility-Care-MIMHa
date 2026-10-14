@@ -13,12 +13,18 @@
 </head>
 <body class="mobile-body"> <!-- Class ini memberi padding bawah -->
 
-    <!-- Top App Bar (Header Simpel) -->
-    <nav class="navbar navbar-light bg-white shadow-sm sticky-top">
-        <div class="container-fluid">
-            <span class="navbar-brand mb-0 h1 text-primary fw-bold">Facility Care MIMHa</span>
-            <!-- Ikon notifikasi (opsional) -->
-            <a href="#" class="text-secondary"><i class="fas fa-bell fs-5"></i></a>
+   <!-- Top App Bar (Header Simpel) -->
+    <nav class="navbar navbar-light bg-white shadow-sm sticky-top py-2">
+        <div class="container-fluid d-flex justify-content-between align-items-center">
+            <!-- Judul Aplikasi -->
+            <span class="navbar-brand mb-0 h1 text-primary fw-bold fs-6">Facility Care MIMHa</span>
+            
+            <!-- TAMPILAN NAMA USER SAJA -->
+            <div class="text-end" style="max-width: 150px;">
+                <span class="small text-dark fw-bold text-truncate d-block" title="<?= esc(session()->get('nama_lengkap')) ?>">
+                    <i class="fas fa-user-circle text-primary me-1"></i><?= esc(session()->get('nama_lengkap') ?? 'Pengguna') ?>
+                </span>
+            </div>
         </div>
     </nav>
 

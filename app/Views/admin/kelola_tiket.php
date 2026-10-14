@@ -17,6 +17,36 @@
         </div>
     <?php endif; ?>
 
+    <!-- FILTER BULAN DAN TAHUN -->
+<form method="get" action="/admin/tiket" class="bg-light p-3 rounded border mb-3 shadow-sm d-flex gap-2 align-items-center flex-wrap">
+    <span class="fw-bold small text-muted"><i class="fas fa-filter"></i> Filter:</span>
+    
+    <select name="bulan" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+        <?php 
+        $arrBulan = [
+            '01'=>'Januari', '02'=>'Februari', '03'=>'Maret', '04'=>'April', 
+            '05'=>'Mei', '06'=>'Juni', '07'=>'Juli', '08'=>'Agustus', 
+            '09'=>'September', '10'=>'Oktober', '11'=>'November', '12'=>'Desember'
+        ];
+        foreach($arrBulan as $k => $v): 
+            $sel = ($k == $bulan) ? 'selected' : '';
+        ?>
+            <option value="<?= $k ?>" <?= $sel ?>><?= $v ?></option>
+        <?php endforeach; ?>
+    </select>
+
+    <select name="tahun" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+        <?php 
+        $thn_sekarang = date('Y');
+        // Tampilkan tahun dari 2 tahun yang lalu sampai tahun ini
+        for($t = $thn_sekarang - 2; $t <= $thn_sekarang; $t++): 
+            $sel = ($t == $tahun) ? 'selected' : '';
+        ?>
+            <option value="<?= $t ?>" <?= $sel ?>><?= $t ?></option>
+        <?php endfor; ?>
+    </select>
+</form>
+
     <div class="card shadow-sm border-0">
         <div class="card-body table-responsive">
             <table class="table table-hover align-middle">
@@ -146,7 +176,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- MODAL EDIT (UPDATE STATUS) -->
 <div class="modal fade" id="modalEdit<?= $t['id'] ?>" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
