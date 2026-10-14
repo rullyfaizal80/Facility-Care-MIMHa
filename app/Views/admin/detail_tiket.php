@@ -10,6 +10,9 @@
     <li class="nav-item">
         <a class="nav-link" href="/admin/laporan"><i class="fas fa-print me-2"></i> Rekap & Cetak</a>
     </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/admin/user"><i class="fas fa-users me-2"></i> Kelola User</a>
+    </li>
 <?= $this->endSection() ?>
 <?= $this->section('content') ?>
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">

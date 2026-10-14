@@ -337,4 +337,74 @@ class AdminController extends BaseController
 
         return view('admin/cetak_laporan', $data); // Diarahkan ke view admin
     }
+
+    // ==========================================
+    // BAGIAN KELOLA USER
+    // ==========================================
+    public function users()
+    {
+        $userModel = new UserModel();
+        
+        $data = [
+            'title' => 'Kelola Pengguna',
+            'users' => $userModel->orderBy('role', 'ASC')->orderBy('nama_lengkap', 'ASC')->findAll()
+        ];
+
+        return view('admin/kelola_user', $data);
+    }
+
+    public function tambahUser()
+    {
+        $userModel = new UserModel();
+        
+        $data = [
+            'nama_lengkap' => $this->request->getPost('nama_lengkap'),
+            'username'     => $this->request->getPost('username'),
+            'password'     => password_hash((string)$this->request->getPost('password'), PASSWORD_DEFAULT),
+            'role'         => $this->request->getPost('role'),
+            'is_active'    => 1 // Aktif secara default
+        ];
+
+        $userModel->insert($data);
+        session()->setFlashdata('success', 'Pengguna baru berhasil ditambahkan.');
+        return redirect()->to('/admin/user');
+    }
+
+    public function editUser()
+    {
+        $userModel = new UserModel();
+        $id = $this->request->getPost('id');
+        
+        $data = [
+            'nama_lengkap' => $this->request->getPost('nama_lengkap'),
+            'username'     => $this->request->getPost('username'),
+            'role'         => $this->request->getPost('role'),
+            'is_active'    => $this->request->getPost('is_active')
+        ];
+
+        // Jika form password diisi, berarti Admin mereset passwordnya
+        $password_baru = $this->request->getPost('password');
+        if (!empty($password_baru)) {
+            $data['password'] = password_hash((string)$password_baru, PASSWORD_DEFAULT);
+        }
+
+        $userModel->update($id, $data);
+        session()->setFlashdata('success', 'Data pengguna berhasil diperbarui.');
+        return redirect()->to('/admin/user');
+    }
+
+    public function hapusUser($id)
+    {
+        $userModel = new UserModel();
+        
+        // Proteksi: Mencegah Admin menghapus dirinya sendiri yang sedang login
+        if ($id == session()->get('id')) {
+            session()->setFlashdata('error', 'Anda tidak dapat menghapus akun Anda sendiri saat sedang login.');
+            return redirect()->to('/admin/user');
+        }
+
+        $userModel->delete($id);
+        session()->setFlashdata('success', 'Akun pengguna berhasil dihapus.');
+        return redirect()->to('/admin/user');
+    }
 }

@@ -20,6 +20,10 @@ $routes->group('admin', ['filter' => 'roleFilter:admin'], static function ($rout
     $routes->post('tiket/update', 'AdminController::updateTiket');
     $routes->get('laporan', 'AdminController::laporan');
     $routes->get('laporan/cetak', 'AdminController::cetak');
+    $routes->get('user', 'AdminController::users');
+    $routes->post('user/tambah', 'AdminController::tambahUser');
+    $routes->post('user/edit', 'AdminController::editUser');
+    $routes->get('user/hapus/(:num)', 'AdminController::hapusUser/$1');
 });
 
 // --- ROUTE PIMPINAN ---
