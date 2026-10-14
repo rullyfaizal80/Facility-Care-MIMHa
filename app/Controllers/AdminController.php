@@ -407,4 +407,66 @@ class AdminController extends BaseController
         session()->setFlashdata('success', 'Akun pengguna berhasil dihapus.');
         return redirect()->to('/admin/user');
     }
+
+    // ==========================================
+    // BAGIAN LAPORAN SAYA (ADMIN SEBAGAI PELAPOR)
+    // ==========================================
+    public function laporanSaya()
+    {
+        $tiketModel = new TiketModel();
+        $admin_id = session()->get('id');
+
+        // Mengambil tiket yang hanya dibuat oleh admin ini
+        $data = [
+            'title' => 'Laporan Saya',
+            'tiket' => $tiketModel->where('pelapor_id', $admin_id)->orderBy('tgl_dibuat', 'DESC')->findAll()
+        ];
+
+        return view('admin/laporan_saya', $data);
+    }
+
+    public function simpanLaporanSaya()
+    {
+        $tiketModel = new TiketModel();
+        $db = \Config\Database::connect();
+        
+        $admin_id = session()->get('id');
+
+        // Cek apakah foto diunggah dan valid
+        $foto = $this->request->getFile('foto');
+        if (!$foto || !$foto->isValid() || $foto->hasMoved()) {
+            session()->setFlashdata('error', 'Foto kondisi awal wajib diunggah!');
+            return redirect()->to('/admin/laporan_saya');
+        }
+
+        // 1. Simpan Data Tiket
+        $dataTiket = [
+            'jenis_tiket'   => 'insidental',
+            'judul_laporan' => $this->request->getPost('judul_laporan'),
+            'lokasi_manual' => $this->request->getPost('lokasi_manual'),
+            'deskripsi'     => $this->request->getPost('deskripsi'),
+            'pelapor_id'    => $admin_id,
+            'status'        => 'menunggu_respon',
+            'prioritas'     => 'sedang',
+            'tgl_dibuat'    => date('Y-m-d H:i:s')
+        ];
+        
+        $tiket_id = $tiketModel->insert($dataTiket);
+
+        // 2. Proses Upload Foto (Wajib)
+        $namaBaru = 'LOKAL_' . time() . '_' . $foto->getRandomName();
+        $foto->move('uploads/laporan/', $namaBaru);
+
+        // Simpan referensi foto ke database
+        $db->table('tiket_foto')->insert([
+            'tiket_id'       => $tiket_id,
+            'tipe_foto'      => 'sebelum',
+            'google_file_id' => $namaBaru,
+            'diupload_oleh'  => $admin_id,
+            'tgl_upload'     => date('Y-m-d H:i:s')
+        ]);
+
+        session()->setFlashdata('success', 'Laporan beserta foto berhasil dikirim!');
+        return redirect()->to('/admin/laporan_saya');
+    }
 }

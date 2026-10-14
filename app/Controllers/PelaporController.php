@@ -70,9 +70,15 @@ class PelaporController extends BaseController
 
     public function simpan()
     {
-        // Kode simpan yang sama seperti revisi terakhir (menggunakan lokasi_manual)
         $tiketModel = new TiketModel();
         $db = \Config\Database::connect();
+
+        // 1. Cek validasi wajib foto terlebih dahulu sebelum transaksi berjalan
+        $foto = $this->request->getFile('foto_kondisi');
+        if (!$foto || !$foto->isValid() || $foto->hasMoved()) {
+            session()->setFlashdata('error', 'Foto kondisi kerusakan wajib diunggah!');
+            return redirect()->back()->withInput();
+        }
 
         $db->transStart();
 
@@ -83,30 +89,29 @@ class PelaporController extends BaseController
             'deskripsi'     => $this->request->getPost('deskripsi'),
             'pelapor_id'    => session()->get('id'),
             'status'        => 'menunggu_respon',
+            'prioritas'     => 'sedang', // Ditambahkan agar selaras dengan kolom prioritas jika ada
             'tgl_dibuat'    => date('Y-m-d H:i:s')
         ];
         
         $tiketModel->insert($dataTiket);
         $tiket_id = $tiketModel->getInsertID();
 
-        $foto = $this->request->getFile('foto_kondisi');
-        if ($foto && $foto->isValid() && !$foto->hasMoved()) {
-            $newName = $foto->getRandomName();
-            $foto->move('uploads/laporan', $newName);
-            
-            $db->table('tiket_foto')->insert([
-                'tiket_id'       => $tiket_id,
-                'tipe_foto'      => 'sebelum',
-                'google_file_id' => 'LOKAL_'.$newName, 
-                'diupload_oleh'  => session()->get('id'),
-                'tgl_upload'     => date('Y-m-d H:i:s')
-            ]);
-        }
+        // 2. Proses pemindahan file foto yang sudah dipastikan valid
+        $newName = $foto->getRandomName();
+        $foto->move('uploads/laporan', $newName);
+        
+        $db->table('tiket_foto')->insert([
+            'tiket_id'       => $tiket_id,
+            'tipe_foto'      => 'sebelum',
+            'google_file_id' => 'LOKAL_'.$newName, 
+            'diupload_oleh'  => session()->get('id'),
+            'tgl_upload'     => date('Y-m-d H:i:s')
+        ]);
 
         $db->transComplete();
 
         if ($db->transStatus() === false) {
-            session()->setFlashdata('error', 'Gagal mengirim laporan.');
+            session()->setFlashdata('error', 'Gagal mengirim laporan. Terjadi kesalahan pada database.');
         } else {
             session()->setFlashdata('success', 'Laporan berhasil dikirim dan sedang menunggu respon Admin.');
         }

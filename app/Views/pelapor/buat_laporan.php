@@ -6,6 +6,13 @@
         <h5 class="m-0 fw-bold">Buat Laporan Baru</h5>
     </div>
 
+    <?php if(session()->getFlashdata('error')): ?>
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fas fa-exclamation-triangle me-1"></i> <?= session()->getFlashdata('error') ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php endif; ?>
+
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body">
             <form action="/pelapor/simpan" method="post" enctype="multipart/form-data">
@@ -25,12 +32,11 @@
                     <textarea class="form-control" name="deskripsi" rows="3" placeholder="Jelaskan kondisi kerusakan lebih lanjut..."></textarea>
                 </div>
 
-                <!-- Bagian Input Foto (Mobile-First) -->
+                <!-- Bagian Input Foto (Wajib) -->
                 <div class="mb-4">
-                    <label class="form-label fw-bold">Foto Kondisi (Opsional)</label>
-                    <!-- Atribut capture="camera" akan memprioritaskan buka kamera HP -->
-                    <input class="form-control" type="file" id="foto_kondisi" name="foto_kondisi" accept="image/*" capture="environment">
-                    <small class="text-muted mt-1 d-block">Ambil foto langsung atau pilih dari galeri.</small>
+                    <label class="form-label fw-bold">Foto Kondisi <span class="text-danger">*</span></label>
+                    <input class="form-control" type="file" id="foto_kondisi" name="foto_kondisi" accept="image/*" capture="environment" required>
+                    <small class="text-muted mt-1 d-block">Wajib mengambil foto langsung atau memilih dari galeri.</small>
                 </div>
 
                 <button type="submit" class="btn btn-primary w-100 py-2 fw-bold"><i class="fas fa-paper-plane me-2"></i> Kirim Laporan</button>

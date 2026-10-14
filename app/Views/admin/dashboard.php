@@ -1,18 +1,11 @@
 <?= $this->extend('layouts/dashboard_layout') ?>
 
 <?= $this->section('sidebar_menu') ?>
-    <li class="nav-item">
-        <a class="nav-link active" href="/admin/dashboard"><i class="fas fa-tachometer-alt me-2"></i> Dashboard</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="/admin/tiket"><i class="fas fa-ticket-alt me-2"></i> Kelola Tiket</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="/admin/laporan"><i class="fas fa-print me-2"></i> Rekap & Cetak</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="/admin/user"><i class="fas fa-users me-2"></i> Kelola User</a>
-    </li>
+    <li class="nav-item"><a class="nav-link active" href="/admin/dashboard"><i class="fas fa-tachometer-alt me-2"></i> Dashboard</a></li>
+    <li class="nav-item"><a class="nav-link" href="/admin/tiket"><i class="fas fa-ticket-alt me-2"></i> Kelola Tiket</a></li>
+    <li class="nav-item"><a class="nav-link" href="/admin/laporan"><i class="fas fa-print me-2"></i> Rekap & Cetak</a></li>
+    <li class="nav-item"><a class="nav-link" href="/admin/user"><i class="fas fa-users me-2"></i> Kelola User</a></li>
+    <li class="nav-item"><a class="nav-link" href="/admin/laporan_saya"><i class="fas fa-bullhorn me-2"></i> Laporan Saya</a></li>
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>

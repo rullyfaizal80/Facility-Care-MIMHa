@@ -24,6 +24,8 @@ $routes->group('admin', ['filter' => 'roleFilter:admin'], static function ($rout
     $routes->post('user/tambah', 'AdminController::tambahUser');
     $routes->post('user/edit', 'AdminController::editUser');
     $routes->get('user/hapus/(:num)', 'AdminController::hapusUser/$1');
+    $routes->get('laporan_saya', 'AdminController::laporanSaya');
+    $routes->post('laporan_saya/simpan', 'AdminController::simpanLaporanSaya');
 });
 
 // --- ROUTE PIMPINAN ---

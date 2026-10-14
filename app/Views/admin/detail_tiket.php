@@ -1,27 +1,25 @@
 <?= $this->extend('layouts/dashboard_layout') ?>
 
 <?= $this->section('sidebar_menu') ?>
-    <li class="nav-item">
-        <a class="nav-link active" href="/admin/dashboard"><i class="fas fa-tachometer-alt me-2"></i> Dashboard</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="/admin/tiket"><i class="fas fa-ticket-alt me-2"></i> Kelola Tiket</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="/admin/laporan"><i class="fas fa-print me-2"></i> Rekap & Cetak</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="/admin/user"><i class="fas fa-users me-2"></i> Kelola User</a>
-    </li>
+    <li class="nav-item"><a class="nav-link" href="/admin/dashboard"><i class="fas fa-tachometer-alt me-2"></i> Dashboard</a></li>
+    <li class="nav-item"><a class="nav-link active" href="/admin/tiket"><i class="fas fa-ticket-alt me-2"></i> Kelola Tiket</a></li>
+    <li class="nav-item"><a class="nav-link" href="/admin/laporan"><i class="fas fa-print me-2"></i> Rekap & Cetak</a></li>
+    <li class="nav-item"><a class="nav-link" href="/admin/user"><i class="fas fa-users me-2"></i> Kelola User</a></li>
+    <li class="nav-item"><a class="nav-link" href="/admin/laporan_saya"><i class="fas fa-bullhorn me-2"></i> Laporan Saya</a></li>
 <?= $this->endSection() ?>
 <?= $this->section('content') ?>
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <h1 class="h2">Detail Laporan</h1>
         <?php 
-            // Cek apakah ada penanda 'source' dari URL. Jika ya, arahkan ke laporan, jika tidak arahkan ke kelola tiket
-            $url_kembali = (isset($_GET['source']) && $_GET['source'] == 'laporan') ? '/admin/laporan' : '/admin/tiket'; 
-        ?>
-        <a href="<?= $url_kembali ?>" class="btn btn-outline-secondary"><i class="fas fa-arrow-left"></i> Kembali</a>
+         if(isset($_GET['source']) && $_GET['source'] == 'laporan') {
+             $url_kembali = '/admin/laporan';
+         } elseif(isset($_GET['source']) && $_GET['source'] == 'laporansaya') {
+             $url_kembali = '/admin/laporan_saya'; // Tambahan ini
+         } else {
+             $url_kembali = '/admin/tiket';
+         }
+     ?>
+     <a href="<?= $url_kembali ?>" class="btn btn-outline-secondary"><i class="fas fa-arrow-left"></i> Kembali</a>
     </div>
 
     <div class="row">
