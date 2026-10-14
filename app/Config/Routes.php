@@ -21,10 +21,11 @@ $routes->group('admin', ['filter' => 'roleFilter:admin'], static function ($rout
 });
 
 // --- ROUTE PIMPINAN ---
-$routes->group('pimpinan', ['filter' => 'roleFilter:pimpinan'], static function ($routes) {
-    $routes->get('dashboard', function() {
-        return '<h1>Dashboard Pimpinan</h1> Halo ' . session()->get('nama_lengkap') . '! <br> <a href="/logout">Logout</a>';
-    });
+$routes->group('pimpinan', ['filter' => 'roleFilter:pimpinan'], static function($routes) { 
+    $routes->get('dashboard', 'PimpinanController::index');
+    $routes->get('laporan', 'PimpinanController::laporan');
+    $routes->get('laporan/cetak', 'PimpinanController::cetak');
+    $routes->get('tiket/detail/(:num)', 'PimpinanController::detail/$1');
 });
 
 // --- ROUTE PELAPOR ---
