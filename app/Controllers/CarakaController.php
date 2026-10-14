@@ -9,14 +9,17 @@ class CarakaController extends BaseController
     {
         $tiketModel = new TiketModel();
         $caraka_id  = session()->get('id');
+        $hari_ini   = date('Y-m-d'); // Dapatkan tanggal hari ini
 
         // Menggunakan FIND_IN_SET agar cocok untuk Multi-Caraka VARCHAR('1,3')
+        // Filter agar HANYA menampilkan tugas yang jadwalnya HARI INI (atau sebelumnya yang belum selesai)
         $data = [
             'title' => 'Tugas Hari Ini',
             'tugas' => $tiketModel->select('tiket_perawatan.*')
-                                  // Hapus join fasilitas, langsung select kolom
                                   ->where("FIND_IN_SET('$caraka_id', caraka_id) > 0")
                                   ->whereIn('status', ['dikerjakan', 'menunggu_approval'])
+                                  // Kondisi: Tampilkan jika tgl_dijadwalkan adalah hari ini ATAU kurang dari hari ini
+                                  ->where('DATE(tgl_dijadwalkan) <=', $hari_ini) 
                                   ->orderBy('prioritas', 'DESC') 
                                   ->orderBy('tgl_dibuat', 'DESC')
                                   ->findAll()

@@ -122,22 +122,25 @@
                             </td>
                         </tr>
 
-                        <!-- MODAL ASSIGN (TIKET BARU) -->
+                        <!-- MODAL ASSIGN (TIKET BARU & OPSI TOLAK/PENDING) -->
                         <div class="modal fade" id="modalAssign<?= $t['id'] ?>" tabindex="-1" aria-hidden="true">
                             <div class="modal-dialog modal-lg">
                                 <div class="modal-content">
                                     <form action="/admin/tiket/tugaskan" method="post">
                                         <div class="modal-header">
-                                            <h5 class="modal-title">Penugasan Tiket Baru</h5>
+                                            <h5 class="modal-title">Proses Tiket Masuk: <?= esc($t['judul_laporan']) ?></h5>
                                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                         </div>
                                         <div class="modal-body row">
                                             <input type="hidden" name="tiket_id" value="<?= $t['id'] ?>">
+                                            
+                                            <!-- Kiri: Detail Laporan & Foto -->
                                             <div class="col-md-6 border-end">
                                                 <h6 class="fw-bold text-primary mb-1"><?= esc($t['judul_laporan']) ?></h6>
                                                 <p class="small mb-2"><i class="fas fa-map-marker-alt text-muted"></i> <?= esc($t['lokasi_manual']) ?></p>
                                                 <p class="small mb-3 text-muted">"<?= esc($t['deskripsi']) ?>"</p>
-                                                <small class="fw-bold d-block mb-1">Foto Kondisi:</small>
+                                                
+                                                <small class="fw-bold d-block mb-1">Foto Kondisi Awal:</small>
                                                 <?php if($t['foto_sebelum']): ?>
                                                     <?php $nama_file = str_replace('LOKAL_', '', $t['foto_sebelum']); ?>
                                                     <img src="<?= base_url('uploads/laporan/' . $nama_file) ?>" class="img-fluid rounded border" alt="Foto" style="max-height: 180px; cursor: zoom-in;" onclick="showImage(this.src)">
@@ -145,40 +148,80 @@
                                                     <div class="bg-light p-3 text-center text-muted small rounded border">Tidak ada foto</div>
                                                 <?php endif; ?>
                                             </div>
+
+                                            <!-- Kanan: Aksi Penugasan atau Penolakan -->
                                             <div class="col-md-6">
-                                                <div class="mb-3">
-                                                    <label class="form-label fw-bold small">Pilih Teknisi (Ceklis)</label>
-                                                    <div class="border rounded p-2 bg-light" style="max-height: 120px; overflow-y: auto;">
-                                                        <?php foreach($caraka as $c): ?>
-                                                            <div class="form-check">
-                                                                <input class="form-check-input" type="checkbox" name="caraka_id[]" value="<?= $c['id'] ?>" id="assign_<?= $t['id'] ?>_<?= $c['id'] ?>">
-                                                                <label class="form-check-label small" for="assign_<?= $t['id'] ?>_<?= $c['id'] ?>"><?= esc($c['nama_lengkap']) ?></label>
-                                                            </div>
-                                                        <?php endforeach; ?>
+                                                <div class="mb-2">
+                                                    <label class="form-label fw-bold small">Tentukan Status / Tindakan</label>
+                                                    <select class="form-select form-select-sm status-select" name="status" data-id="<?= $t['id'] ?>" required>
+    <option value="dikerjakan" selected>Tugaskan Teknisi (Proses)</option>
+    <option value="pending">Pending (Tunda Sementara)</option>
+    <option value="ditolak">Tolak (Laporan Kurang Lengkap)</option>
+</select>
+                                                </div>
+
+                                                <!-- Bagian Form Penugasan Teknisi (Disembunyikan jika status ditolak/pending) -->
+                                                <div id="wrapperTeknisi<?= $t['id'] ?>">
+                                                    <div class="mb-2">
+                                                        <label class="form-label fw-bold small">Pilih Teknisi (Ceklis)</label>
+                                                        <div class="border rounded p-1 bg-light" style="max-height: 90px; overflow-y: auto;">
+                                                            <?php foreach($caraka as $c): ?>
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input" type="checkbox" name="caraka_id[]" value="<?= $c['id'] ?>" id="assign_<?= $t['id'] ?>_<?= $c['id'] ?>">
+                                                                    <label class="form-check-label small" for="assign_<?= $t['id'] ?>_<?= $c['id'] ?>"><?= esc($c['nama_lengkap']) ?></label>
+                                                                </div>
+                                                            <?php endforeach; ?>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-6 mb-2">
+                                                            <label class="form-label fw-bold small">Tgl Tugas</label>
+                                                            <input type="date" class="form-control form-control-sm" name="tgl_dijadwalkan" value="<?= date('Y-m-d') ?>">
+                                                        </div>
+                                                        <div class="col-6 mb-2">
+                                                            <label class="form-label fw-bold small">Prioritas</label>
+                                                            <select class="form-select form-select-sm" name="prioritas">
+                                                                <option value="rendah">Rendah</option>
+                                                                <option value="sedang" selected>Sedang</option>
+                                                                <option value="tinggi">Tinggi</option>
+                                                            </select>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <div class="mb-3">
-                                                    <label class="form-label fw-bold small">Tanggal Penugasan</label>
-                                                    <input type="date" class="form-control" name="tgl_dijadwalkan" value="<?= date('Y-m-d') ?>" required>
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label class="form-label fw-bold small">Tingkat Prioritas</label>
-                                                    <select class="form-select" name="prioritas" required>
-                                                        <option value="rendah">Rendah (Bisa ditunda)</option>
-                                                        <option value="sedang" selected>Sedang (Normal)</option>
-                                                        <option value="tinggi">Tinggi (Segera / Urgent)</option>
-                                                    </select>
+
+                                                <!-- Catatan Alasan (Wajib diisi jika ditolak/pending) -->
+                                                <div class="mb-2">
+                                                    <label class="form-label fw-bold small">Catatan / Alasan (Opsional jika ditugaskan, Wajib jika ditolak)</label>
+                                                    <textarea class="form-control form-control-sm" name="catatan_admin" rows="3" placeholder="Tuliskan alasan jika laporan ditolak atau ditunda..."></textarea>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="modal-footer bg-light">
                                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                                            <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane me-1"></i> Tugaskan Sekarang</button>
+                                            <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Simpan Tindakan</button>
                                         </div>
                                     </form>
                                 </div>
                             </div>
                         </div>
+
+                        <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.status-select').forEach(function(select) {
+            select.addEventListener('change', function() {
+                const id = this.getAttribute('data-id');
+                const val = this.value;
+                const wrapper = document.getElementById('wrapperTeknisi' + id);
+                
+                if (val === 'ditolak' || val === 'pending') {
+                    wrapper.style.display = 'none';
+                } else {
+                    wrapper.style.display = 'block';
+                }
+            });
+        });
+    });
+</script>
 
                         <!-- MODAL EDIT (UPDATE STATUS) -->
 <div class="modal fade" id="modalEdit<?= $t['id'] ?>" tabindex="-1" aria-hidden="true">

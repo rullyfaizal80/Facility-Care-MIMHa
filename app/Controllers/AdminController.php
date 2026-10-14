@@ -113,23 +113,43 @@ class AdminController extends BaseController
         $tiketModel = new TiketModel();
         
         $tiket_id  = $this->request->getPost('tiket_id');
+        $status    = $this->request->getPost('status'); // Menangkap status dari dropdown modal assign
         $prioritas = $this->request->getPost('prioritas');
-        $tgl_tugas = $this->request->getPost('tgl_dijadwalkan'); // Tanggal penugasan
+        $tgl_tugas = $this->request->getPost('tgl_dijadwalkan'); 
+        $catatan   = $this->request->getPost('catatan_admin'); // Menangkap alasan ditolak/pending
         
-        // Menangkap Multi-Caraka (Karena bentuknya array dari form multiple select)
-        $caraka_array = $this->request->getPost('caraka_id'); 
-        
-        // Ubah array [1, 3] menjadi string koma "1,3" agar bisa masuk ke VARCHAR
-        $caraka_string = implode(',', (array)$caraka_array); 
+        // Data dasar yang akan diupdate
+        $dataUpdate = [
+            'status' => $status
+        ];
 
-        $tiketModel->update($tiket_id, [
-            'caraka_id'       => $caraka_string, // Bisa 1 orang atau banyak
-            'prioritas'       => $prioritas,
-            'tgl_dijadwalkan' => $tgl_tugas,     // Menyimpan tanggal penugasan
-            'status'          => 'dikerjakan'
-        ]);
+        // Jika status BUKAN ditolak atau pending, berarti murni penugasan (dikerjakan)
+        if ($status !== 'ditolak' && $status !== 'pending') {
+            $caraka_array = $this->request->getPost('caraka_id'); 
+            $caraka_string = !empty($caraka_array) ? implode(',', (array)$caraka_array) : null; 
+            
+            $dataUpdate['caraka_id']       = $caraka_string;
+            $dataUpdate['prioritas']       = $prioritas;
+            $dataUpdate['tgl_dijadwalkan'] = $tgl_tugas;
+        }
 
-        session()->setFlashdata('success', 'Tiket berhasil ditugaskan ke Caraka.');
+        // Jika admin mengisi catatan alasan penolakan/penundaan
+        if (!empty($catatan)) {
+            $dataUpdate['catatan_admin'] = $catatan;
+        }
+
+        // Eksekusi update ke database
+        $tiketModel->update($tiket_id, $dataUpdate);
+
+        // Atur pesan sukses dinamis berdasarkan status
+        if ($status == 'ditolak') {
+            session()->setFlashdata('success', 'Laporan berhasil ditolak dan dikembalikan ke pelapor.');
+        } elseif ($status == 'pending') {
+            session()->setFlashdata('success', 'Laporan diubah menjadi status Pending.');
+        } else {
+            session()->setFlashdata('success', 'Tiket berhasil ditugaskan ke Caraka.');
+        }
+
         return redirect()->to('/admin/tiket');
     }
 
