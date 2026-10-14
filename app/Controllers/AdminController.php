@@ -13,10 +13,13 @@ class AdminController extends BaseController
         
         // Menghitung statistik untuk Dashboard
         $data = [
-            'title'         => 'Dashboard Admin',
-            'tiket_masuk'   => $tiketModel->where('status', 'menunggu_respon')->countAllResults(),
-            'tiket_proses'  => $tiketModel->where('status', 'dikerjakan')->countAllResults(),
-            'tiket_selesai' => $tiketModel->where('status', 'selesai')->countAllResults(),
+            'title'          => 'Dashboard Admin',
+            'tiket_masuk'    => $tiketModel->where('status', 'menunggu_respon')->countAllResults(),
+            'tiket_proses'   => $tiketModel->whereIn('status', ['dikerjakan', 'pending'])->countAllResults(),
+            'tiket_approval' => $tiketModel->where('status', 'menunggu_approval')->countAllResults(),
+            'tiket_selesai'  => $tiketModel->where('status', 'selesai')->countAllResults(),
+            // Tambahan: Menghitung tiket yang ditolak/dibatalkan
+            'tiket_ditolak'  => $tiketModel->where('status', 'ditolak')->countAllResults(),
         ];
         
         return view('admin/dashboard', $data);
@@ -105,33 +108,35 @@ class AdminController extends BaseController
     public function detailTiket($tiket_id)
     {
         $tiketModel = new TiketModel();
+        $userModel  = new UserModel();
         $db = \Config\Database::connect();
 
-        // 1. Ambil data utama tiket
-        $tiket = $tiketModel->select('tiket_perawatan.*, fasilitas.nama_fasilitas, fasilitas.lokasi, users.nama_lengkap as nama_pelapor, caraka.nama_lengkap as nama_caraka')
-                            ->join('fasilitas', 'fasilitas.id = tiket_perawatan.fasilitas_id')
+        // 1. Ambil data utama tiket (tanpa join fasilitas, cukup join pelapor)
+        $tiket = $tiketModel->select('tiket_perawatan.*, users.nama_lengkap as nama_pelapor')
                             ->join('users', 'users.id = tiket_perawatan.pelapor_id', 'left')
-                            ->join('users as caraka', 'caraka.id = tiket_perawatan.caraka_id', 'left')
                             ->where('tiket_perawatan.id', $tiket_id)
                             ->first();
 
+        // Jika tidak ditemukan, kembalikan ke kelola tiket
         if (empty($tiket)) {
             return redirect()->to('/admin/tiket');
         }
 
-        // 2. Ambil data foto (Sebelum & Sesudah)
-        // Jika pakai GDrive, nama file yang diambil adalah ID GDrive, jika pakai lokal, adalah nama file lokalnya
-        $foto_sebelum = $db->table('tiket_foto')
-                           ->where('tiket_id', $tiket_id)
-                           ->where('tipe_foto', 'sebelum')
-                           ->orderBy('id', 'DESC') // Ambil yang paling baru
-                           ->get()->getRowArray();
-                           
-        $foto_sesudah = $db->table('tiket_foto')
-                           ->where('tiket_id', $tiket_id)
-                           ->where('tipe_foto', 'sesudah')
-                           ->orderBy('id', 'DESC')
-                           ->get()->getRowArray();
+        // 2. Ambil Nama-nama Caraka (Logika Multi-Caraka)
+        $tiket['nama_caraka'] = '-';
+        if (!empty($tiket['caraka_id'])) {
+            $caraka_ids = explode(',', $tiket['caraka_id']); 
+            $caraka_users = $userModel->whereIn('id', $caraka_ids)->findAll();
+            $nama_nama = [];
+            foreach ($caraka_users as $cu) {
+                $nama_nama[] = $cu['nama_lengkap'];
+            }
+            $tiket['nama_caraka'] = implode(', ', $nama_nama);
+        }
+
+        // 3. Ambil data foto (Sebelum & Sesudah)
+        $foto_sebelum = $db->table('tiket_foto')->where('tiket_id', $tiket_id)->where('tipe_foto', 'sebelum')->orderBy('id', 'DESC')->get()->getRowArray();
+        $foto_sesudah = $db->table('tiket_foto')->where('tiket_id', $tiket_id)->where('tipe_foto', 'sesudah')->orderBy('id', 'DESC')->get()->getRowArray();
 
         $data = [
             'title'        => 'Detail & Approval Tiket',
@@ -165,6 +170,45 @@ class AdminController extends BaseController
             session()->setFlashdata('error', 'Laporan ditolak dan dikembalikan ke Caraka.');
         }
 
+        return redirect()->to('/admin/tiket');
+    }
+
+    public function updateTiket()
+    {
+        $tiketModel = new TiketModel();
+        
+        $tiket_id  = $this->request->getPost('tiket_id');
+        $status    = $this->request->getPost('status');
+        $prioritas = $this->request->getPost('prioritas');
+        $tgl_tugas = $this->request->getPost('tgl_dijadwalkan');
+        $catatan   = $this->request->getPost('catatan_admin'); // Menangkap inputan catatan
+        
+        // Ambil array caraka yang diceklis
+        $caraka_array = $this->request->getPost('caraka_id'); 
+        $caraka_string = !empty($caraka_array) ? implode(',', (array)$caraka_array) : null; 
+
+        // Siapkan data yang akan di-update
+        $dataUpdate = [
+            'caraka_id'       => $caraka_string,
+            'prioritas'       => $prioritas,
+            'tgl_dijadwalkan' => $tgl_tugas,
+            'status'          => $status
+        ];
+
+        // Jika admin mengisi catatan (misal alasan ditolak/pending), masukkan ke data
+        if ($catatan !== null) {
+            $dataUpdate['catatan_admin'] = $catatan;
+        }
+
+        // Jika Admin secara manual mengubah status menjadi 'selesai', pastikan tanggal selesainya tercatat
+        if ($status == 'selesai') {
+            $dataUpdate['tgl_selesai'] = date('Y-m-d H:i:s');
+        }
+
+        // Eksekusi update ke database
+        $tiketModel->update($tiket_id, $dataUpdate);
+
+        session()->setFlashdata('success', 'Perubahan tiket berhasil disimpan.');
         return redirect()->to('/admin/tiket');
     }
 }
