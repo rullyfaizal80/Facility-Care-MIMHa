@@ -142,7 +142,7 @@
                                                 
                                                 <small class="fw-bold d-block mb-1">Foto Kondisi Awal:</small>
 <?php if(!empty($t['foto_sebelum'])): ?>
-    <img src="<?= base_url('admin/renderFoto/' . $t['foto_sebelum']) ?>" class="img-fluid rounded border" alt="Foto Laporan" style="max-height: 180px; cursor: zoom-in;" onclick="showImage(this.src)">
+    <img loading="lazy" src="<?= base_url('admin/renderFoto/' . $t['foto_sebelum']) ?>" class="img-fluid rounded border" alt="Foto Laporan" style="max-height: 180px; cursor: zoom-in;" onclick="showImage(this.src)">
 <?php else: ?>
     <div class="bg-light p-3 text-center text-muted small rounded border">Tidak ada foto</div>
 <?php endif; ?>
@@ -243,7 +243,7 @@
                         <!-- Tambahan: Menampilkan Foto di Modal Edit -->
                         <small class="fw-bold d-block mb-1">Foto Kondisi Awal:</small>
 <?php if(!empty($t['foto_sebelum'])): ?>
-    <img src="<?= base_url('admin/renderFoto/' . $t['foto_sebelum']) ?>" class="img-fluid rounded border" alt="Foto Laporan" style="max-height: 180px; cursor: zoom-in;" onclick="showImage(this.src)">
+    <img loading="lazy" src="<?= base_url('admin/renderFoto/' . $t['foto_sebelum']) ?>" class="img-fluid rounded border" alt="Foto Laporan" style="max-height: 180px; cursor: zoom-in;" onclick="showImage(this.src)">
 <?php else: ?>
     <div class="bg-light p-3 text-center text-muted small rounded border">Tidak ada foto</div>
 <?php endif; ?>
@@ -325,7 +325,7 @@
             </div>
             <div class="modal-body text-center pt-2">
                 <!-- Gambar akan dirender di sini dengan tinggi maksimal 85% layar -->
-                <img id="enlargedImage" src="" class="img-fluid rounded shadow-lg" style="max-height: 85vh; object-fit: contain;">
+                <img loading="lazy" id="enlargedImage" src="" class="img-fluid rounded shadow-lg" style="max-height: 85vh; object-fit: contain;">
             </div>
         </div>
     </div>

@@ -87,7 +87,7 @@
                         <div class="card-header bg-white text-center fw-bold text-muted">Kondisi Awal (Pelapor)</div>
                         <div class="card-body text-center p-2">
                             <?php if (!empty($foto_sebelum)): ?>
-                                <img src="<?= base_url('admin/renderFoto/' . esc($foto_sebelum['google_file_id'])) ?>" class="img-fluid rounded border" alt="Foto Sebelum Perbaikan" style="max-height: 350px; cursor: zoom-in; object-fit: contain;" onclick="showImage(this.src)">
+                                <img loading="lazy" src="<?= base_url('admin/renderFoto/' . esc($foto_sebelum['google_file_id'])) ?>" class="img-fluid rounded border" alt="Foto Sebelum Perbaikan" style="max-height: 350px; cursor: zoom-in; object-fit: contain;" onclick="showImage(this.src)">
                             <?php else: ?>
                                 <div class="text-muted py-5"><i class="fas fa-image fa-3x mb-2"></i><br>Tidak ada foto awal</div>
                             <?php endif; ?>
@@ -101,7 +101,7 @@
                         <div class="card-header bg-white text-center fw-bold text-success">Hasil Perbaikan (Teknisi)</div>
                         <div class="card-body text-center p-2">
                             <?php if (!empty($foto_sesudah)): ?>
-                                <img src="<?= base_url('admin/renderFoto/' . esc($foto_sesudah['google_file_id'])) ?>" class="img-fluid rounded border" alt="Foto Sesudah Perbaikan" style="max-height: 350px; cursor: zoom-in; object-fit: contain;" onclick="showImage(this.src)">
+                                <img loading="lazy" src="<?= base_url('admin/renderFoto/' . esc($foto_sesudah['google_file_id'])) ?>" class="img-fluid rounded border" alt="Foto Sesudah Perbaikan" style="max-height: 350px; cursor: zoom-in; object-fit: contain;" onclick="showImage(this.src)">
                             <?php else: ?>
                                 <div class="text-muted py-5"><i class="fas fa-camera-slash fa-3x mb-2"></i><br>Belum ada foto penyelesaian</div>
                             <?php endif; ?>
