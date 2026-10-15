@@ -35,6 +35,7 @@ $routes->group('pimpinan', ['filter' => 'roleFilter:pimpinan'], static function(
     $routes->get('laporan', 'PimpinanController::laporan');
     $routes->get('laporan/cetak', 'PimpinanController::cetak');
     $routes->get('tiket/detail/(:num)', 'PimpinanController::detail/$1');
+    $routes->get('renderFoto/(:any)', 'PimpinanController::renderFoto/$1');
 });
 
 // --- ROUTE PELAPOR ---

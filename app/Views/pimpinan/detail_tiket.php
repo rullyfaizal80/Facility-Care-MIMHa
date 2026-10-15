@@ -61,7 +61,7 @@
                         <div class="card-body text-center p-2">
                             <?php if($foto_sebelum): ?>
                                 <?php $nama_file = str_replace('LOKAL_', '', $foto_sebelum['google_file_id']); ?>
-                                <img src="<?= base_url('uploads/laporan/' . $nama_file) ?>" class="img-fluid rounded" alt="Foto Sebelum" style="max-height: 350px; cursor: zoom-in; object-fit: contain;" onclick="showImage(this.src)">
+                                <img src="<?= base_url('pimpinan/renderFoto/' . esc($foto_sebelum['google_file_id'])) ?>" class="img-fluid rounded border" alt="Foto Sebelum" style="cursor: zoom-in;" onclick="showImage(this.src)">
                             <?php else: ?>
                                 <div class="text-muted py-5"><i class="fas fa-image fa-3x mb-2"></i><br>Tidak ada foto awal</div>
                             <?php endif; ?>
@@ -75,7 +75,7 @@
                         <div class="card-body text-center p-2">
                             <?php if($foto_sesudah): ?>
                                 <?php $nama_file = str_replace('LOKAL_', '', $foto_sesudah['google_file_id']); ?>
-                                <img src="<?= base_url('uploads/laporan/' . $nama_file) ?>" class="img-fluid rounded" alt="Foto Sesudah" style="max-height: 350px; cursor: zoom-in; object-fit: contain;" onclick="showImage(this.src)">
+                                <img src="<?= base_url('pimpinan/renderFoto/' . esc($foto_sesudah['google_file_id'])) ?>" class="img-fluid rounded border" alt="Foto Sesudah" style="cursor: zoom-in;" onclick="showImage(this.src)">
                             <?php else: ?>
                                 <div class="text-muted py-5"><i class="fas fa-camera-slash fa-3x mb-2"></i><br>Belum ada foto penyelesaian</div>
                             <?php endif; ?>
@@ -85,4 +85,25 @@
             </div>
         </div>
     </div>
+    <!-- Modal Zoom-In Gambar -->
+<div class="modal fade" id="imageViewerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-transparent border-0 shadow-none">
+            <div class="modal-header border-0 pb-0 justify-content-end">
+                <button type="button" class="btn-close btn-close-white fs-4" data-bs-dismiss="modal" aria-label="Close" style="background-color: white; border-radius: 50%; padding: 0.5rem;"></button>
+            </div>
+            <div class="modal-body text-center pt-2">
+                <img id="enlargedImage" src="" class="img-fluid rounded shadow-lg" style="max-height: 85vh; object-fit: contain;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showImage(src) {
+        document.getElementById('enlargedImage').src = src;
+        const viewerModal = new bootstrap.Modal(document.getElementById('imageViewerModal'));
+        viewerModal.show();
+    }
+</script>
 <?= $this->endSection() ?>

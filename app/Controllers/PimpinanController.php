@@ -197,4 +197,18 @@ class PimpinanController extends BaseController
         return view('pimpinan/detail_tiket', $data);
     }
     
+    public function renderFoto($fileId)
+    {
+        try {
+            $driveService = new \App\Libraries\GoogleDriveService();
+            $gambarData = $driveService->getMedia($fileId);
+            
+            return $this->response
+                        ->setContentType('image/jpeg') 
+                        ->setHeader('Cache-Control', 'max-age=86400')
+                        ->setBody($gambarData);
+        } catch (\Exception $e) {
+            return $this->response->setStatusCode(404)->setBody('Gambar tidak ditemukan');
+        }
+    }
 }
