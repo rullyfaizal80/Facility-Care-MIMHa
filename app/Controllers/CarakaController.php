@@ -73,6 +73,13 @@ class CarakaController extends BaseController
         
         $tiket_id = $this->request->getPost('tiket_id');
         
+        $foto = $this->request->getFile('foto_sesudah');
+        // Validasi Foto Harus Ada
+        if (!$foto || !$foto->isValid() || $foto->hasMoved()) {
+            session()->setFlashdata('error', 'Foto hasil perbaikan wajib diunggah!');
+            return redirect()->back();
+        }
+
         $db->transStart();
 
         $tiketModel->update($tiket_id, [
@@ -80,19 +87,38 @@ class CarakaController extends BaseController
             'tgl_selesai' => date('Y-m-d H:i:s')
         ]);
 
-        $foto = $this->request->getFile('foto_sesudah');
-        if ($foto && $foto->isValid() && !$foto->hasMoved()) {
-            
-            $newName = $foto->getRandomName();
-            $foto->move('uploads/laporan', $newName);
-            
+        // PROSES UPLOAD KE GOOGLE DRIVE
+        $newName  = $foto->getRandomName();
+        $tempPath = FCPATH . 'uploads/temp/';
+        $foto->move($tempPath, $newName); // Simpan sementara
+        
+        $fullPath = $tempPath . $newName;
+        $mimeType = mime_content_type($fullPath);
+
+        try {
+            // Panggil Library Drive
+            $driveService = new \App\Libraries\GoogleDriveService();
+            $google_file_id = $driveService->uploadImage($fullPath, $newName, $mimeType);
+
+            // Hapus file sementara
+            if (file_exists($fullPath)) {
+                unlink($fullPath);
+            }
+
+            // Simpan ID GDrive ke Database (tanpa embel-embel LOKAL_)
             $db->table('tiket_foto')->insert([
                 'tiket_id'       => $tiket_id,
                 'tipe_foto'      => 'sesudah',
-                'google_file_id' => 'LOKAL_'.$newName, 
+                'google_file_id' => $google_file_id, 
                 'diupload_oleh'  => session()->get('id'),
                 'tgl_upload'     => date('Y-m-d H:i:s')
             ]);
+
+        } catch (\Exception $e) {
+            $db->transRollback();
+            if (file_exists($fullPath)) unlink($fullPath);
+            session()->setFlashdata('error', 'Gagal mengunggah foto ke Cloud: ' . $e->getMessage());
+            return redirect()->back();
         }
 
         $db->transComplete();
@@ -105,8 +131,6 @@ class CarakaController extends BaseController
 
         return redirect()->to('/caraka/dashboard');
     }
-
-    // app/Controllers/CarakaController.php
 
     public function riwayat()
     {
@@ -168,5 +192,22 @@ class CarakaController extends BaseController
         ];
 
         return view('caraka/detail_riwayat', $data);
+    }
+
+    // app/Controllers/CarakaController.php
+    
+    public function renderFoto($fileId)
+    {
+        try {
+            $driveService = new \App\Libraries\GoogleDriveService();
+            $gambarData = $driveService->getMedia($fileId);
+            
+            return $this->response
+                        ->setContentType('image/jpeg') 
+                        ->setHeader('Cache-Control', 'max-age=86400')
+                        ->setBody($gambarData);
+        } catch (\Exception $e) {
+            return $this->response->setStatusCode(404)->setBody('Gambar tidak ditemukan');
+        }
     }
 }
