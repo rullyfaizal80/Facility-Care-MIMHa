@@ -417,14 +417,26 @@ class AdminController extends BaseController
     {
         $userModel = new UserModel();
         
-        // Proteksi: Mencegah Admin menghapus dirinya sendiri yang sedang login
+        // Proteksi: Mencegah Admin menghapus dirinya sendiri
         if ($id == session()->get('id')) {
             session()->setFlashdata('error', 'Anda tidak dapat menghapus akun Anda sendiri saat sedang login.');
             return redirect()->to('/admin/user');
         }
 
-        $userModel->delete($id);
-        session()->setFlashdata('success', 'Akun pengguna berhasil dihapus.');
+        try {
+            // Mencoba menghapus user
+            $userModel->delete($id);
+            session()->setFlashdata('success', 'Akun pengguna berhasil dihapus.');
+        } catch (\CodeIgniter\Database\Exceptions\DatabaseException $e) {
+            // Menangkap error jika user terikat dengan foreign key constraint (Error 1451)
+            if (strpos($e->getMessage(), 'foreign key constraint') !== false || strpos($e->getMessage(), '1451') !== false) {
+                session()->setFlashdata('error', 'Gagal! Pengguna ini tidak dapat dihapus karena memiliki riwayat laporan atau data foto. Silakan edit dan ubah statusnya menjadi "Tidak Aktif".');
+            } else {
+                // Menangkap error database lainnya
+                session()->setFlashdata('error', 'Terjadi kesalahan database: ' . $e->getMessage());
+            }
+        }
+
         return redirect()->to('/admin/user');
     }
 
@@ -462,14 +474,16 @@ class AdminController extends BaseController
         
         $admin_id = session()->get('id');
 
-        // Cek apakah foto diunggah dan valid
+        // 1. Cek validasi wajib foto terlebih dahulu
         $foto = $this->request->getFile('foto');
         if (!$foto || !$foto->isValid() || $foto->hasMoved()) {
             session()->setFlashdata('error', 'Foto kondisi awal wajib diunggah!');
             return redirect()->to('/admin/laporan_saya');
         }
 
-        // 1. Simpan Data Tiket
+        $db->transStart();
+
+        // 2. Simpan Data Utama Tiket
         $dataTiket = [
             'jenis_tiket'   => 'insidental',
             'judul_laporan' => $this->request->getPost('judul_laporan'),
@@ -481,22 +495,57 @@ class AdminController extends BaseController
             'tgl_dibuat'    => date('Y-m-d H:i:s')
         ];
         
-        $tiket_id = $tiketModel->insert($dataTiket);
+        $tiketModel->insert($dataTiket);
+        $tiket_id = $tiketModel->getInsertID();
 
-        // 2. Proses Upload Foto (Wajib)
-        $namaBaru = 'LOKAL_' . time() . '_' . $foto->getRandomName();
-        $foto->move('uploads/laporan/', $namaBaru);
+        // 3. PROSES UPLOAD KE GOOGLE DRIVE
+        // a. Pindahkan foto ke folder sementara (temp)
+        $newName = 'ADMIN_' . $tiket_id . '_' . $foto->getRandomName();
+        $tempPath = FCPATH . 'uploads/temp/'; 
+        $foto->move($tempPath, $newName);
+        
+        $fullPath = $tempPath . $newName;
+        $mimeType = mime_content_type($fullPath);
 
-        // Simpan referensi foto ke database
-        $db->table('tiket_foto')->insert([
-            'tiket_id'       => $tiket_id,
-            'tipe_foto'      => 'sebelum',
-            'google_file_id' => $namaBaru,
-            'diupload_oleh'  => $admin_id,
-            'tgl_upload'     => date('Y-m-d H:i:s')
-        ]);
+        try {
+            // b. Panggil Library Google Drive dan eksekusi Upload
+            $driveService = new \App\Libraries\GoogleDriveService();
+            $google_file_id = $driveService->uploadImage($fullPath, $newName, $mimeType);
 
-        session()->setFlashdata('success', 'Laporan beserta foto berhasil dikirim!');
+            // c. Hapus file sementara di lokal server agar server tidak penuh
+            if (file_exists($fullPath)) {
+                unlink($fullPath);
+            }
+
+            // 4. Simpan Referensi ID Google Drive ke Database
+            $db->table('tiket_foto')->insert([
+                'tiket_id'       => $tiket_id,
+                'tipe_foto'      => 'sebelum',
+                'google_file_id' => $google_file_id, 
+                'diupload_oleh'  => $admin_id,
+                'tgl_upload'     => date('Y-m-d H:i:s')
+            ]);
+
+        } catch (\Exception $e) {
+            $db->transRollback(); // Batalkan penyimpanan tiket
+            
+            // Hapus file temp jika tertinggal
+            if (file_exists($fullPath)) {
+                unlink($fullPath);
+            }
+
+            session()->setFlashdata('error', 'Gagal mengunggah foto ke Google Drive: ' . $e->getMessage());
+            return redirect()->to('/admin/laporan_saya')->withInput();
+        }
+
+        $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            session()->setFlashdata('error', 'Gagal mengirim laporan. Terjadi kesalahan pada database.');
+        } else {
+            session()->setFlashdata('success', 'Laporan berhasil dikirim dan tersimpan di Google Drive.');
+        }
+        
         return redirect()->to('/admin/laporan_saya');
     }
 

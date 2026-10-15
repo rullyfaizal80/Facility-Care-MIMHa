@@ -1,11 +1,12 @@
 <?= $this->extend('layouts/dashboard_layout') ?>
 
 <?= $this->section('sidebar_menu') ?>
+    <?php $source = request()->getGet('source'); ?>
     <li class="nav-item"><a class="nav-link" href="/admin/dashboard"><i class="fas fa-tachometer-alt me-2"></i> Dashboard</a></li>
-    <li class="nav-item"><a class="nav-link active" href="/admin/tiket"><i class="fas fa-ticket-alt me-2"></i> Kelola Tiket</a></li>
+    <li class="nav-item"><a class="nav-link <?= ($source !== 'laporansaya') ? 'active' : '' ?>" href="/admin/tiket"><i class="fas fa-ticket-alt me-2"></i> Kelola Tiket</a></li>
     <li class="nav-item"><a class="nav-link" href="/admin/laporan"><i class="fas fa-print me-2"></i> Rekap & Cetak</a></li>
     <li class="nav-item"><a class="nav-link" href="/admin/user"><i class="fas fa-users me-2"></i> Kelola User</a></li>
-    <li class="nav-item"><a class="nav-link" href="/admin/laporan_saya"><i class="fas fa-bullhorn me-2"></i> Laporan Saya</a></li>
+    <li class="nav-item"><a class="nav-link <?= ($source === 'laporansaya') ? 'active' : '' ?>" href="/admin/laporan_saya"><i class="fas fa-bullhorn me-2"></i> Laporan Saya</a></li>
 <?= $this->endSection() ?>
 <?= $this->section('content') ?>
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
@@ -19,7 +20,9 @@
              $url_kembali = '/admin/tiket';
          }
      ?>
-     <a href="<?= $url_kembali ?>" class="btn btn-outline-secondary"><i class="fas fa-arrow-left"></i> Kembali</a>
+     <a href="<?= (request()->getGet('source') === 'laporansaya') ? '/admin/laporan_saya' : '/admin/tiket' ?>" class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-arrow-left me-1"></i> Kembali
+</a>
     </div>
 
     <div class="row">
@@ -111,4 +114,32 @@
             </div>
         </div>
     </div>
+
+    <!-- ============================================== -->
+<!-- MODAL KHUSUS UNTUK ZOOM-IN GAMBAR (IMAGE VIEWER) -->
+<!-- ============================================== -->
+<div class="modal fade" id="imageViewerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-transparent border-0 shadow-none">
+            <div class="modal-header border-0 pb-0 justify-content-end">
+                <button type="button" class="btn-close btn-close-white fs-4" data-bs-dismiss="modal" aria-label="Close" style="background-color: white; border-radius: 50%; padding: 0.5rem;"></button>
+            </div>
+            <div class="modal-body text-center pt-2">
+                <img loading="lazy" id="enlargedImage" src="" class="img-fluid rounded shadow-lg" style="max-height: 85vh; object-fit: contain;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================== -->
+<!-- SCRIPT JAVASCRIPT UNTUK MEMICU MODAL ZOOM-IN -->
+<!-- ============================================== -->
+<script>
+    function showImage(src) {
+        const imageElement = document.getElementById('enlargedImage');
+        imageElement.src = src;
+        const viewerModal = new bootstrap.Modal(document.getElementById('imageViewerModal'));
+        viewerModal.show();
+    }
+</script>
 <?= $this->endSection() ?>
