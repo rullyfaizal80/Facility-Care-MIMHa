@@ -54,4 +54,5 @@ $routes->group('caraka', ['filter' => 'roleFilter:caraka'], static function ($ro
     $routes->post('selesaikan', 'CarakaController::selesaikan');
     $routes->get('riwayat', 'CarakaController::riwayat');
     $routes->get('detail/(:num)', 'CarakaController::detail/$1');
+    $routes->get('renderFoto/(:any)', 'CarakaController::renderFoto/$1');
 });

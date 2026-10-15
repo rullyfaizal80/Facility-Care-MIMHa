@@ -18,14 +18,13 @@
 
             <!-- Menampilkan Foto Awal dari Pelapor -->
             <small class="fw-bold d-block mb-2"><i class="fas fa-image text-muted"></i> Foto Kondisi Awal:</small>
-            <?php if($foto_sebelum): ?>
-                <?php $nama_file = str_replace('LOKAL_', '', $foto_sebelum['google_file_id']); ?>
-                <img src="<?= base_url('uploads/laporan/' . $nama_file) ?>" 
-                     class="img-fluid rounded border shadow-sm" 
-                     alt="Foto Awal" 
-                     style="max-height: 200px; cursor: zoom-in;"
-                     onclick="showImage(this.src)">
-            <?php else: ?>
+            <?php if(!empty($foto_sebelum)): ?>
+    <img src="<?= base_url('caraka/renderFoto/' . esc($foto_sebelum['google_file_id'])) ?>" 
+         class="img-fluid rounded border shadow-sm" 
+         alt="Foto Awal" 
+         style="max-height: 200px; cursor: zoom-in;"
+         onclick="showImage(this.src)">
+<?php else: ?>
                 <div class="bg-white p-3 text-center text-muted small rounded border">
                     <i class="fas fa-image fa-2x mb-1 text-light"></i><br>Tidak ada foto dilampirkan
                 </div>
@@ -36,6 +35,14 @@
     <!-- Form Upload Hasil -->
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body">
+            <!-- TAMBAHKAN BLOK INI UNTUK MENAMPILKAN PESAN ERROR -->
+            <?php if(session()->getFlashdata('error')): ?>
+                <div class="alert alert-danger alert-dismissible fade show small" role="alert">
+                    <i class="fas fa-exclamation-triangle me-1"></i> <?= session()->getFlashdata('error') ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php endif; ?>
+            <!-- ============================================== -->
             <form action="/caraka/selesaikan" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="tiket_id" value="<?= $tiket['id'] ?>">
                 
@@ -59,8 +66,30 @@
     </div>
 <?= $this->endSection() ?>
 
+<!-- Modal Zoom-In Gambar -->
+<div class="modal fade" id="imageViewerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-transparent border-0 shadow-none">
+            <div class="modal-header border-0 pb-0 justify-content-end">
+                <button type="button" class="btn-close btn-close-white fs-4" data-bs-dismiss="modal" aria-label="Close" style="background-color: white; border-radius: 50%; padding: 0.5rem;"></button>
+            </div>
+            <div class="modal-body text-center pt-2">
+                <img id="enlargedImage" src="" class="img-fluid rounded shadow-lg" style="max-height: 85vh; object-fit: contain;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showImage(src) {
+        document.getElementById('enlargedImage').src = src;
+        const viewerModal = new bootstrap.Modal(document.getElementById('imageViewerModal'));
+        viewerModal.show();
+    }
+</script>
+
 <?= $this->section('bottom_nav') ?>
     <a href="/caraka/dashboard" class="active"><i class="fas fa-home"></i>Beranda</a>
-    <a href="#"><i class="fas fa-clipboard-list"></i>Riwayat</a>
+    <a href="/caraka/riwayat"><i class="fas fa-clipboard-list"></i>Riwayat</a>
     <a href="/logout"><i class="fas fa-sign-out-alt"></i>Keluar</a>
 <?= $this->endSection() ?>

@@ -28,34 +28,32 @@
     <?php endif; ?>
 
     <!-- FOTO BUKTI -->
-    <div class="row g-2 mb-4">
-        <div class="col-6">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body p-2 text-center">
-                    <small class="text-muted d-block mb-1 fw-bold">Kondisi Awal</small>
-                    <?php if($foto_sebelum): ?>
-                        <?php $nama_file = str_replace('LOKAL_', '', $foto_sebelum['google_file_id']); ?>
-                        <img src="<?= base_url('uploads/laporan/' . $nama_file) ?>" class="img-fluid rounded border" alt="Foto Sebelum" style="cursor: zoom-in;" onclick="showImage(this.src)">
-                    <?php else: ?>
-                        <div class="bg-light rounded py-3 text-muted small border"><i class="fas fa-image fa-2x mb-1"></i><br>Tidak ada foto</div>
-                    <?php endif; ?>
-                </div>
-            </div>
-        </div>
-        <div class="col-6">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body p-2 text-center">
-                    <small class="text-success d-block mb-1 fw-bold">Hasil Anda</small>
-                    <?php if($foto_sesudah): ?>
-                        <?php $nama_file = str_replace('LOKAL_', '', $foto_sesudah['google_file_id']); ?>
-                        <img src="<?= base_url('uploads/laporan/' . $nama_file) ?>" class="img-fluid rounded border" alt="Foto Sesudah" style="cursor: zoom-in;" onclick="showImage(this.src)">
-                    <?php else: ?>
-                        <div class="bg-light rounded py-3 text-muted small border"><i class="fas fa-tools fa-2x mb-1"></i><br>Belum ada foto</div>
-                    <?php endif; ?>
-                </div>
+<div class="row g-2 mb-4">
+    <div class="col-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body p-2 text-center">
+                <small class="text-muted d-block mb-1 fw-bold">Kondisi Awal</small>
+                <?php if(!empty($foto_sebelum)): ?>
+                    <img src="<?= base_url('caraka/renderFoto/' . esc($foto_sebelum['google_file_id'])) ?>" class="img-fluid rounded border" alt="Foto Sebelum" style="cursor: zoom-in;" onclick="showImage(this.src)">
+                <?php else: ?>
+                    <div class="bg-light rounded py-3 text-muted small border"><i class="fas fa-image fa-2x mb-1"></i><br>Tidak ada foto</div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
+    <div class="col-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body p-2 text-center">
+                <small class="text-success d-block mb-1 fw-bold">Hasil Anda</small>
+                <?php if(!empty($foto_sesudah)): ?>
+                    <img src="<?= base_url('caraka/renderFoto/' . esc($foto_sesudah['google_file_id'])) ?>" class="img-fluid rounded border" alt="Foto Sesudah" style="cursor: zoom-in;" onclick="showImage(this.src)">
+                <?php else: ?>
+                    <div class="bg-light rounded py-3 text-muted small border"><i class="fas fa-tools fa-2x mb-1"></i><br>Belum ada foto</div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+</div>
 <?= $this->endSection() ?>
 
 <!-- Sembunyikan bottom_nav di tampilan detail -->

@@ -72,63 +72,84 @@ class CarakaController extends BaseController
         $db = \Config\Database::connect();
         
         $tiket_id = $this->request->getPost('tiket_id');
-        
-        $foto = $this->request->getFile('foto_sesudah');
-        // Validasi Foto Harus Ada
-        if (!$foto || !$foto->isValid() || $foto->hasMoved()) {
-            session()->setFlashdata('error', 'Foto hasil perbaikan wajib diunggah!');
-            return redirect()->back();
+
+        // 1. VALIDASI FILE FOTO (Maksimal 5 MB = 5120 KB)
+        $aturanValidasi = [
+            'foto_sesudah' => [
+                'rules'  => 'uploaded[foto_sesudah]|is_image[foto_sesudah]|max_size[foto_sesudah,5120]',
+                'errors' => [
+                    'uploaded' => 'Foto hasil perbaikan wajib diunggah!',
+                    'is_image' => 'File yang diunggah harus berupa foto/gambar (JPG/PNG).',
+                    'max_size' => 'Ukuran foto terlalu besar. Maksimal 5 MB.'
+                ]
+            ]
+        ];
+
+        if (!$this->validate($aturanValidasi)) {
+            session()->setFlashdata('error', $this->validator->getError('foto_sesudah'));
+            return redirect()->to('/caraka/kerjakan/' . $tiket_id)->withInput();
         }
 
+        $foto = $this->request->getFile('foto_sesudah');
+
+        // 2. MULAI TRANSAKSI DATABASE
         $db->transStart();
 
+        // Update status tiket & tanggal selesai
         $tiketModel->update($tiket_id, [
             'status'      => 'menunggu_approval',
             'tgl_selesai' => date('Y-m-d H:i:s')
         ]);
 
-        // PROSES UPLOAD KE GOOGLE DRIVE
+        // 3. SIAPKAN FOLDER SEMENTARA (TEMP)
         $newName  = $foto->getRandomName();
         $tempPath = FCPATH . 'uploads/temp/';
-        $foto->move($tempPath, $newName); // Simpan sementara
-        
+
+        if (!is_dir($tempPath)) {
+            mkdir($tempPath, 0777, true);
+        }
+
+        $foto->move($tempPath, $newName);
         $fullPath = $tempPath . $newName;
         $mimeType = mime_content_type($fullPath);
 
+        // 4. UPLOAD KE GOOGLE DRIVE
         try {
-            // Panggil Library Drive
-            $driveService = new \App\Libraries\GoogleDriveService();
+            $driveService   = new \App\Libraries\GoogleDriveService();
             $google_file_id = $driveService->uploadImage($fullPath, $newName, $mimeType);
 
-            // Hapus file sementara
+            // Hapus file sementara di lokal setelah berhasil diunggah ke Drive
             if (file_exists($fullPath)) {
                 unlink($fullPath);
             }
 
-            // Simpan ID GDrive ke Database (tanpa embel-embel LOKAL_)
+            // Simpan metadata ke tabel tiket_foto
             $db->table('tiket_foto')->insert([
                 'tiket_id'       => $tiket_id,
                 'tipe_foto'      => 'sesudah',
-                'google_file_id' => $google_file_id, 
+                'google_file_id' => $google_file_id,
                 'diupload_oleh'  => session()->get('id'),
                 'tgl_upload'     => date('Y-m-d H:i:s')
             ]);
 
         } catch (\Exception $e) {
             $db->transRollback();
-            if (file_exists($fullPath)) unlink($fullPath);
-            session()->setFlashdata('error', 'Gagal mengunggah foto ke Cloud: ' . $e->getMessage());
-            return redirect()->back();
+            if (file_exists($fullPath)) {
+                unlink($fullPath);
+            }
+            session()->setFlashdata('error', 'Gagal mengunggah foto ke Google Drive: ' . $e->getMessage());
+            return redirect()->to('/caraka/kerjakan/' . $tiket_id)->withInput();
         }
 
         $db->transComplete();
 
+        // 5. CEK STATUS AKHIR TRANSAKSI
         if ($db->transStatus() === false) {
-            session()->setFlashdata('error', 'Gagal mengirim laporan selesai.');
-        } else {
-            session()->setFlashdata('success', 'Tugas berhasil diselesaikan. Menunggu persetujuan Admin.');
+            session()->setFlashdata('error', 'Terjadi kesalahan sistem database saat menyimpan laporan.');
+            return redirect()->to('/caraka/kerjakan/' . $tiket_id)->withInput();
         }
 
+        session()->setFlashdata('success', 'Tugas berhasil diselesaikan dan tersimpan di Cloud. Menunggu persetujuan Admin.');
         return redirect()->to('/caraka/dashboard');
     }
 
