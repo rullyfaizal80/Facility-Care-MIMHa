@@ -141,12 +141,11 @@
                                                 <p class="small mb-3 text-muted">"<?= esc($t['deskripsi']) ?>"</p>
                                                 
                                                 <small class="fw-bold d-block mb-1">Foto Kondisi Awal:</small>
-                                                <?php if($t['foto_sebelum']): ?>
-                                                    <?php $nama_file = str_replace('LOKAL_', '', $t['foto_sebelum']); ?>
-                                                    <img src="<?= base_url('uploads/laporan/' . $nama_file) ?>" class="img-fluid rounded border" alt="Foto" style="max-height: 180px; cursor: zoom-in;" onclick="showImage(this.src)">
-                                                <?php else: ?>
-                                                    <div class="bg-light p-3 text-center text-muted small rounded border">Tidak ada foto</div>
-                                                <?php endif; ?>
+<?php if(!empty($t['foto_sebelum'])): ?>
+    <img src="<?= base_url('admin/renderFoto/' . $t['foto_sebelum']) ?>" class="img-fluid rounded border" alt="Foto Laporan" style="max-height: 180px; cursor: zoom-in;" onclick="showImage(this.src)">
+<?php else: ?>
+    <div class="bg-light p-3 text-center text-muted small rounded border">Tidak ada foto</div>
+<?php endif; ?>
                                             </div>
 
                                             <!-- Kanan: Aksi Penugasan atau Penolakan -->
@@ -242,13 +241,12 @@
                         <p class="small mb-3 text-muted">"<?= esc($t['deskripsi']) ?>"</p>
                         
                         <!-- Tambahan: Menampilkan Foto di Modal Edit -->
-                        <small class="fw-bold d-block mb-1">Foto Kondisi:</small>
-                        <?php if($t['foto_sebelum']): ?>
-                            <?php $nama_file = str_replace('LOKAL_', '', $t['foto_sebelum']); ?>
-                            <img src="<?= base_url('uploads/laporan/' . $nama_file) ?>" class="img-fluid rounded border" alt="Foto" style="max-height: 180px; cursor: zoom-in;" onclick="showImage(this.src)">
-                        <?php else: ?>
-                            <div class="bg-light p-3 text-center text-muted small rounded border">Tidak ada foto</div>
-                        <?php endif; ?>
+                        <small class="fw-bold d-block mb-1">Foto Kondisi Awal:</small>
+<?php if(!empty($t['foto_sebelum'])): ?>
+    <img src="<?= base_url('admin/renderFoto/' . $t['foto_sebelum']) ?>" class="img-fluid rounded border" alt="Foto Laporan" style="max-height: 180px; cursor: zoom-in;" onclick="showImage(this.src)">
+<?php else: ?>
+    <div class="bg-light p-3 text-center text-muted small rounded border">Tidak ada foto</div>
+<?php endif; ?>
                     </div>
                     
                     <!-- Kanan (Sudah direvisi dengan kolom catatan) -->
@@ -313,4 +311,40 @@
             </table>
         </div>
     </div>
+
+    <!-- ============================================== -->
+<!-- MODAL KHUSUS UNTUK ZOOM-IN GAMBAR (IMAGE VIEWER) -->
+<!-- ============================================== -->
+<div class="modal fade" id="imageViewerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <!-- Background transparan agar gambar lebih fokus -->
+        <div class="modal-content bg-transparent border-0 shadow-none">
+            <div class="modal-header border-0 pb-0 justify-content-end">
+                <!-- Tombol close berwarna putih (karena background gelap saat modal aktif) -->
+                <button type="button" class="btn-close btn-close-white fs-4" data-bs-dismiss="modal" aria-label="Close" style="background-color: white; border-radius: 50%; padding: 0.5rem;"></button>
+            </div>
+            <div class="modal-body text-center pt-2">
+                <!-- Gambar akan dirender di sini dengan tinggi maksimal 85% layar -->
+                <img id="enlargedImage" src="" class="img-fluid rounded shadow-lg" style="max-height: 85vh; object-fit: contain;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================== -->
+<!-- SCRIPT JAVASCRIPT UNTUK MEMICU MODAL ZOOM-IN -->
+<!-- ============================================== -->
+<script>
+    function showImage(src) {
+        // 1. Ambil elemen gambar di dalam Modal Viewer
+        const imageElement = document.getElementById('enlargedImage');
+        
+        // 2. Timpa (replace) sumber gambar dengan URL dari gambar yang sedang diklik
+        imageElement.src = src;
+        
+        // 3. Panggil dan tampilkan modal menggunakan instance Bootstrap 5
+        const viewerModal = new bootstrap.Modal(document.getElementById('imageViewerModal'));
+        viewerModal.show();
+    }
+</script>
 <?= $this->endSection() ?>

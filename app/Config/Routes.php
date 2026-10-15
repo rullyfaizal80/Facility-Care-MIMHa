@@ -26,6 +26,7 @@ $routes->group('admin', ['filter' => 'roleFilter:admin'], static function ($rout
     $routes->get('user/hapus/(:num)', 'AdminController::hapusUser/$1');
     $routes->get('laporan_saya', 'AdminController::laporanSaya');
     $routes->post('laporan_saya/simpan', 'AdminController::simpanLaporanSaya');
+    $routes->get('renderFoto/(:any)', 'AdminController::renderFoto/$1');
 });
 
 // --- ROUTE PIMPINAN ---
@@ -42,6 +43,7 @@ $routes->group('pelapor', ['filter' => 'roleFilter:pelapor'], static function ($
     $routes->get('buat', 'PelaporController::buat');
     $routes->post('simpan', 'PelaporController::simpan');
     $routes->get('detail/(:num)', 'PelaporController::detail/$1');
+    $routes->get('renderFoto/(:any)', 'PelaporController::renderFoto/$1');
 });
 
 // --- ROUTE CARAKA ---

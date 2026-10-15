@@ -86,10 +86,9 @@
                     <div class="card shadow-sm border-0 h-100">
                         <div class="card-header bg-white text-center fw-bold text-muted">Kondisi Awal (Pelapor)</div>
                         <div class="card-body text-center p-2">
-                            <?php if($foto_sebelum): ?>
-                                <?php $nama_file = str_replace('LOKAL_', '', $foto_sebelum['google_file_id']); ?>
-                                <img src="<?= base_url('uploads/laporan/' . $nama_file) ?>" class="img-fluid rounded" alt="Foto Sebelum" style="max-height: 350px; cursor: zoom-in; object-fit: contain;" onclick="showImage(this.src)">
-                            <?php else: ?>
+                            <?php if (!empty($foto_sebelum)): ?>
+    <img src="https://drive.google.com/uc?export=view&id=<?= esc($foto_sebelum['google_file_id']) ?>" class="img-fluid rounded border" alt="Foto Sebelum Perbaikan">
+<?php endif; ?>
                                 <div class="text-muted py-5"><i class="fas fa-image fa-3x mb-2"></i><br>Tidak ada foto awal</div>
                             <?php endif; ?>
                         </div>

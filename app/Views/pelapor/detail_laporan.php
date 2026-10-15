@@ -53,20 +53,19 @@
         </div>
     <?php endif; ?>
 
-    <!-- FOTO BUKTI -->
+   <!-- FOTO BUKTI -->
     <div class="row g-2 mb-4">
         <!-- Foto Sebelum (Pelapor) -->
         <div class="col-6">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-body p-2 text-center">
                     <small class="text-muted d-block mb-1 fw-bold">Kondisi Awal</small>
-                    <?php if($foto_sebelum): ?>
-                        <?php $nama_file = str_replace('LOKAL_', '', $foto_sebelum['google_file_id']); ?>
-                        <img src="<?= base_url('uploads/laporan/' . $nama_file) ?>" 
-     class="img-fluid rounded border" 
-     alt="Foto Sebelum" 
-     style="cursor: zoom-in;" 
-     onclick="showImage(this.src)">
+                    <?php if(!empty($foto_sebelum)): ?>
+                        <img src="<?= base_url('pelapor/renderFoto/' . esc($foto_sebelum['google_file_id'])) ?>" 
+                             class="img-fluid rounded border" 
+                             alt="Foto Sebelum" 
+                             style="cursor: zoom-in;" 
+                             onclick="showImage(this.src)">
                     <?php else: ?>
                         <div class="bg-light rounded py-3 text-muted small border"><i class="fas fa-image fa-2x mb-1"></i><br>Tidak ada foto</div>
                     <?php endif; ?>
@@ -79,13 +78,12 @@
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-body p-2 text-center">
                     <small class="text-success d-block mb-1 fw-bold">Hasil Perbaikan</small>
-                    <?php if($foto_sesudah): ?>
-                        <?php $nama_file = str_replace('LOKAL_', '', $foto_sesudah['google_file_id']); ?>
-                        <img src="<?= base_url('uploads/laporan/' . $nama_file) ?>" 
-     class="img-fluid rounded border" 
-     alt="Foto Sesudah" 
-     style="cursor: zoom-in;" 
-     onclick="showImage(this.src)">
+                    <?php if(!empty($foto_sesudah)): ?>
+                        <img src="<?= base_url('pelapor/renderFoto/' . esc($foto_sesudah['google_file_id'])) ?>" 
+                             class="img-fluid rounded border" 
+                             alt="Foto Sesudah" 
+                             style="cursor: zoom-in;" 
+                             onclick="showImage(this.src)">
                     <?php else: ?>
                         <div class="bg-light rounded py-3 text-muted small border"><i class="fas fa-tools fa-2x mb-1"></i><br>Belum ada foto</div>
                     <?php endif; ?>
@@ -94,6 +92,28 @@
         </div>
     </div>
 <?= $this->endSection() ?>
+
+<!-- Modal Khusus Zoom-In (Image Viewer) -->
+<div class="modal fade" id="imageViewerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-transparent border-0 shadow-none">
+            <div class="modal-header border-0 pb-0 justify-content-end">
+                <button type="button" class="btn-close btn-close-white fs-4" data-bs-dismiss="modal" aria-label="Close" style="background-color: white; border-radius: 50%; padding: 0.5rem;"></button>
+            </div>
+            <div class="modal-body text-center pt-2">
+                <img id="enlargedImage" src="" class="img-fluid rounded shadow-lg" style="max-height: 85vh; object-fit: contain;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showImage(src) {
+        document.getElementById('enlargedImage').src = src;
+        const viewerModal = new bootstrap.Modal(document.getElementById('imageViewerModal'));
+        viewerModal.show();
+    }
+</script>
 
 <!-- Bottom Nav Disembunyikan agar fokus baca detail -->
 <?= $this->section('bottom_nav') ?>

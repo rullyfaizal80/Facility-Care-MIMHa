@@ -499,4 +499,23 @@ class AdminController extends BaseController
         session()->setFlashdata('success', 'Laporan beserta foto berhasil dikirim!');
         return redirect()->to('/admin/laporan_saya');
     }
+
+    public function renderFoto($fileId)
+    {
+        try {
+            $driveService = new \App\Libraries\GoogleDriveService();
+            // Ambil data mentah dari Google Drive
+            $gambarData = $driveService->getMedia($fileId);
+            
+            // Perintahkan CodeIgniter untuk merender ini sebagai gambar utuh
+            return $this->response
+                        ->setContentType('image/jpeg') 
+                        ->setHeader('Cache-Control', 'max-age=86400') // Cache 1 hari agar server tidak berat
+                        ->setBody($gambarData);
+                        
+        } catch (\Exception $e) {
+            // Jika ID salah atau gagal, berikan respon error
+            return $this->response->setStatusCode(404)->setBody('Gambar tidak ditemukan');
+        }
+    }
 }
