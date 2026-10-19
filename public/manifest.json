@@ -1,6 +1,6 @@
 {
   "name": "Facility Care MIMHa",
-  "short_name": "Facility Care",
+  "short_name": "Facility Care MIMHa",
   "description": "Sistem Pelaporan Kerusakan Fasilitas MIMHa",
   "start_url": "/login",
   "display": "standalone",
