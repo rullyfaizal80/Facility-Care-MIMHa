@@ -121,9 +121,9 @@
     </div>
 
     <!-- PWA Install Banner -->
-    <div id="install-banner" class="alert alert-primary alert-dismissible fade show d-none shadow" role="alert" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; z-index: 9999;">
+    <!-- PERUBAHAN: bottom: 20px diganti menjadi top: 20px agar banner muncul di atas -->
+    <div id="install-banner" class="alert alert-primary alert-dismissible fade show d-none shadow" role="alert" style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; z-index: 9999;">
         <div class="d-flex align-items-center">
-            <!-- Menampilkan gambar logo jika ada, jika tidak muncul bisa ganti pakai icon fa -->
             <img src="<?= base_url('assets/images/logo.png') ?>" alt="Logo" class="me-3 rounded" style="width: 40px; height: 40px; object-fit: cover;" onerror="this.outerHTML='<i class=\'fas fa-mobile-alt fa-2x me-3 text-primary\'></i>'">
             <div>
                 <strong class="text-primary">Instal Aplikasi!</strong><br>
@@ -139,7 +139,6 @@
 
     <!-- Script PWA -->
     <script>
-        // Mendaftarkan Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js').then((registration) => {
@@ -158,7 +157,6 @@
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            // Tampilkan banner
             installBanner.classList.remove('d-none');
         });
 
