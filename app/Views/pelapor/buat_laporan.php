@@ -15,8 +15,8 @@
 
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body">
-            <!-- Tambahkan onsubmit="showLoading()" pada tag form -->
-            <form action="/pelapor/simpan" method="post" enctype="multipart/form-data" onsubmit="showLoading()">
+            <!-- PENTING: Form onSubmit sekarang memanggil validasiDanLoading -->
+            <form action="/pelapor/simpan" method="post" enctype="multipart/form-data" onsubmit="return validasiDanLoading(event)">
                 
                 <div class="mb-3">
                     <label class="form-label fw-bold">Lokasi / Fasilitas <span class="text-danger">*</span></label>
@@ -33,13 +33,27 @@
                     <textarea class="form-control" name="deskripsi" rows="3" placeholder="Jelaskan kondisi kerusakan lebih lanjut..."></textarea>
                 </div>
 
-                <!-- Bagian Input Foto -->
+                <!-- ======================================================= -->
+                <!-- BAGIAN INPUT FOTO (2 TOMBOL NATIVE HTML & BEBAS ERROR)  -->
+                <!-- ======================================================= -->
                 <div class="mb-4">
                     <label class="form-label fw-bold">Foto Kondisi <span class="text-danger">*</span></label>
-                    <input class="form-control form-control-lg" type="file" id="foto_kondisi" name="foto_kondisi" accept="image/*" required onchange="previewImage(this)">
-                    <small class="text-muted mt-2 d-block">
-                        <i class="fas fa-info-circle text-primary me-1"></i>Ketuk kolom di atas. HP Anda akan otomatis menampilkan pilihan <b>Kamera</b> atau <b>Galeri</b>.
-                    </small>
+                    
+                    <!-- 1. Input Khusus Kamera (Memiliki capture) -->
+                    <input type="file" id="input_kamera" accept="image/*" capture="environment" class="d-none" onchange="prosesFoto(this, 'input_galeri')">
+                    
+                    <!-- 2. Input Khusus Galeri (Tanpa capture) -->
+                    <input type="file" id="input_galeri" accept="image/*" class="d-none" onchange="prosesFoto(this, 'input_kamera')">
+                    
+                    <!-- Tombol UI (Menggunakan atribut for="..." untuk memicu input tanpa klik JS) -->
+                    <div class="d-flex gap-2 mb-2">
+                        <label for="input_kamera" class="btn btn-outline-primary flex-fill fw-bold py-2 m-0 shadow-sm cursor-pointer">
+                            <i class="fas fa-camera me-1"></i> Buka Kamera
+                        </label>
+                        <label for="input_galeri" class="btn btn-outline-success flex-fill fw-bold py-2 m-0 shadow-sm cursor-pointer">
+                            <i class="fas fa-images me-1"></i> Pilih Galeri
+                        </label>
+                    </div>
 
                     <!-- Tempat Tampil Preview Gambar -->
                     <div id="preview-container" class="mt-3 text-center d-none p-3 border rounded bg-light">
@@ -48,7 +62,6 @@
                     </div>
                 </div>
 
-                <!-- Tambahkan ID pada tombol submit -->
                 <button type="submit" id="btn-submit" class="btn btn-primary w-100 py-2 fw-bold">
                     <i class="fas fa-paper-plane me-2"></i> Kirim Laporan
                 </button>
@@ -57,7 +70,7 @@
     </div>
 
     <!-- ============================================== -->
-    <!-- ELEMENT LOADING OVERLAY (Bawaan disembunyikan) -->
+    <!-- ELEMENT LOADING OVERLAY                        -->
     <!-- ============================================== -->
     <div id="loading-overlay" class="d-none" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255, 255, 255, 0.85); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; backdrop-filter: blur(3px);">
         <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
@@ -67,42 +80,51 @@
     </div>
 
     <!-- ============================================== -->
-    <!-- SCRIPT PREVIEW GAMBAR & LOADING ANIMATION      -->
+    <!-- SCRIPT PREVIEW & VALIDASI (SANGAT RINGAN)      -->
     <!-- ============================================== -->
     <script>
-        // Fungsi Preview Gambar
-        function previewImage(input) {
-            const previewContainer = document.getElementById('preview-container');
-            const imgPreview = document.getElementById('img-preview');
-            const fileName = document.getElementById('file-name');
+        // Fungsi mengatur preview dan menentukan input mana yang dikirim ke server
+        function prosesFoto(inputTerpilih, idInputLain) {
+            if (inputTerpilih.files.length === 0) return; // Batal pilih
 
-            if (input.files && input.files[0]) {
-                const file = input.files[0];
-                imgPreview.src = URL.createObjectURL(file);
-                fileName.textContent = file.name;
-                previewContainer.classList.remove('d-none');
-            } else {
-                previewContainer.classList.add('d-none');
-                imgPreview.src = '';
-                fileName.textContent = '';
-            }
+            const inputLain = document.getElementById(idInputLain);
+            const file = inputTerpilih.files[0];
+
+            // 1. Pasang nama agar input ini yang ditangkap oleh $this->request->getFile('foto_kondisi') di CI4
+            inputTerpilih.name = 'foto_kondisi';
+            
+            // 2. Kosongkan input sebelahnya agar file lama tidak menumpuk/bentrok
+            inputLain.removeAttribute('name');
+            inputLain.value = ''; 
+
+            // 3. Render gambar menggunakan ObjectURL (Sangat cepat dan anti-crash di HP)
+            document.getElementById('img-preview').src = URL.createObjectURL(file);
+            document.getElementById('file-name').textContent = file.name;
+            document.getElementById('preview-container').classList.remove('d-none');
         }
 
-        // Fungsi Menampilkan Loading & Mematikan Tombol Submit
-        function showLoading() {
-            // 1. Tampilkan overlay animasi loading layar penuh
-            const overlay = document.getElementById('loading-overlay');
-            overlay.classList.remove('d-none');
+        // Fungsi mengecek apakah foto sudah diisi sebelum loading muncul
+        function validasiDanLoading(event) {
+            const jumlahKamera = document.getElementById('input_kamera').files.length;
+            const jumlahGaleri = document.getElementById('input_galeri').files.length;
 
-            // 2. Ubah tombol "Kirim" menjadi "Memproses..." dan matikan (disabled)
-            const btnSubmit = document.getElementById('btn-submit');
-            btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Memproses...';
+            // Karena kita menggunakan d-none, atribut HTML 'required' tidak bisa dipakai.
+            // Maka kita gunakan validasi manual JavaScript di sini:
+            if (jumlahKamera === 0 && jumlahGaleri === 0) {
+                event.preventDefault(); // Batalkan form submit
+                alert('Ups! Anda belum melampirkan foto. Silakan ketuk "Buka Kamera" atau "Pilih Galeri".');
+                return false;
+            }
+
+            // Jika valid, tampilkan Loading
+            document.getElementById('loading-overlay').classList.remove('d-none');
             
-            // Catatan: Kita tidak langsung men-disable tombol menggunakan btnSubmit.disabled = true; 
-            // Karena pada beberapa browser, mendisable tombol submit saat disubmit akan membatalkan pengiriman form.
-            // Sebagai gantinya, style tombol dibuat seolah-olah disabled menggunakan CSS "pointer-events: none; opacity: 0.7;"
+            const btnSubmit = document.getElementById('btn-submit');
+            btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Memproses...';
             btnSubmit.style.pointerEvents = 'none';
             btnSubmit.style.opacity = '0.7';
+            
+            return true;
         }
     </script>
 <?= $this->endSection() ?>
