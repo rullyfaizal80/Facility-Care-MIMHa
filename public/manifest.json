@@ -1,0 +1,21 @@
+{
+  "name": "Facility Care MIMHa",
+  "short_name": "Facility Care",
+  "description": "Sistem Pelaporan Kerusakan Fasilitas MIMHa",
+  "start_url": "/login",
+  "display": "standalone",
+  "background_color": "#f8f9fa",
+  "theme_color": "#0d6efd",
+  "icons": [
+    {
+      "src": "assets/images/logo.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "assets/images/logo.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}

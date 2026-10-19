@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Facility Care MIMHa</title>
     
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="<?= base_url('manifest.json') ?>">
+    <meta name="theme-color" content="#0d6efd">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Facility Care">
+    <!-- Sesuaikan path icon iOS ini dengan nama file logo Anda -->
+    <link rel="apple-touch-icon" href="<?= base_url('assets/images/logo.png') ?>">
+
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome Icons -->
@@ -12,7 +21,6 @@
     
     <style>
         body {
-            /* Warna latar belakang abu-abu sangat muda */
             background-color: #f4f7f6; 
             display: flex;
             align-items: center;
@@ -30,7 +38,6 @@
             overflow: hidden;
         }
         .login-header {
-            /* Gradien biru khas aplikasi korporat/sekolah */
             background: linear-gradient(135deg, #0d6efd, #0dcaf0);
             color: white;
             padding: 35px 20px;
@@ -62,7 +69,6 @@
     <div class="container px-3 d-flex justify-content-center">
         <div class="card login-card">
             
-            <!-- Header Login -->
             <div class="login-header">
                 <i class="fas fa-tools fa-3x mb-3 shadow-sm rounded-circle p-3 bg-white text-primary"></i>
                 <h4 class="mb-0 fw-bold">Facility Care MIMHa</h4>
@@ -70,7 +76,6 @@
             
             <div class="card-body p-4 bg-white">
                 
-                <!-- Pesan Error (Flashdata) -->
                 <?php if(session()->getFlashdata('error')): ?>
                     <div class="alert alert-danger d-flex align-items-center p-2 mb-4 small border-0 bg-danger text-white rounded-3" role="alert">
                         <i class="fas fa-exclamation-triangle me-2"></i>
@@ -83,8 +88,6 @@
                     </div>
                 <?php endif; ?>
 
-                <!-- Form Login -->
-                <!-- PENTING: Sesuaikan atribut 'action' di bawah ini dengan route/URL proses login Anda -->
                 <form action="<?= base_url('login/process') ?>" method="post">
                     
                     <div class="mb-3">
@@ -110,7 +113,6 @@
                 </form>
             </div>
             
-            <!-- Footer Login -->
             <div class="card-footer bg-light border-0 text-center py-3">
                 <small class="text-muted fw-semibold">&copy; <?= date('Y') ?> Facility Care MIMHa</small>
             </div>
@@ -118,7 +120,68 @@
         </div>
     </div>
 
+    <!-- PWA Install Banner -->
+    <div id="install-banner" class="alert alert-primary alert-dismissible fade show d-none shadow" role="alert" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; z-index: 9999;">
+        <div class="d-flex align-items-center">
+            <!-- Menampilkan gambar logo jika ada, jika tidak muncul bisa ganti pakai icon fa -->
+            <img src="<?= base_url('assets/images/logo.png') ?>" alt="Logo" class="me-3 rounded" style="width: 40px; height: 40px; object-fit: cover;" onerror="this.outerHTML='<i class=\'fas fa-mobile-alt fa-2x me-3 text-primary\'></i>'">
+            <div>
+                <strong class="text-primary">Instal Aplikasi!</strong><br>
+                <span class="small text-muted">Tambahkan ke layar utama HP untuk akses cepat.</span>
+            </div>
+        </div>
+        <button type="button" id="btn-install" class="btn btn-sm btn-primary mt-3 w-100 fw-bold rounded-pill shadow-sm">Instal Sekarang</button>
+        <button type="button" class="btn-close" id="btn-close-banner" aria-label="Close"></button>
+    </div>
+
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Script PWA -->
+    <script>
+        // Mendaftarkan Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').then((registration) => {
+                    console.log('ServiceWorker terdaftar dengan scope: ', registration.scope);
+                }).catch((err) => {
+                    console.log('ServiceWorker pendaftaran gagal: ', err);
+                });
+            });
+        }
+
+        let deferredPrompt;
+        const installBanner = document.getElementById('install-banner');
+        const btnInstall = document.getElementById('btn-install');
+        const btnClose = document.getElementById('btn-close-banner');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            // Tampilkan banner
+            installBanner.classList.remove('d-none');
+        });
+
+        btnInstall.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                installBanner.classList.add('d-none');
+                deferredPrompt.prompt();
+                
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`Pilihan user: ${outcome}`);
+                deferredPrompt = null;
+            }
+        });
+
+        btnClose.addEventListener('click', () => {
+            installBanner.classList.add('d-none');
+        });
+
+        window.addEventListener('appinstalled', () => {
+            installBanner.classList.add('d-none');
+            deferredPrompt = null;
+            console.log('Aplikasi sukses diinstal');
+        });
+    </script>
 </body>
 </html>
